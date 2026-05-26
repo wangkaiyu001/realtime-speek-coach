@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+.turbo/
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Database
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+prisma/dev.db*
+prisma/migrations/dev/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Miniprogram build artifacts
+packages/miniprogram/dist/
+packages/miniprogram/miniprogram_npm/
+project.private.config.json
+
+# Temp
+tmp/
+.cache/

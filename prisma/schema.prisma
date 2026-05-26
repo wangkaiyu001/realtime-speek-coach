@@ -1,0 +1,104 @@
+// Prisma Schema - Realtime Speak Coach
+// SQLite for MVP, Prisma-compatible with PostgreSQL migration path
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  openId    String   @unique @map("open_id")
+  unionId   String?  @map("union_id")
+  language  String?  // 'en' | 'ja', null until chosen
+  level     Int?     // 1-9 proficiency
+  nickname  String?
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  placementResults PlacementResult[]
+  sessions         Session[]
+
+  @@map("users")
+}
+
+model PlacementResult {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  language      String   // 'en' | 'ja'
+  level         Int      // resulting level 1-9
+  pronunciation Int      @default(0) // 0-100
+  grammar       Int      @default(0)
+  vocabulary    Int      @default(0)
+  fluency       Int      @default(0)
+  interaction   Int      @default(0)
+  rawData       String?  @map("raw_data") // JSON string of full assessment
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("placement_results")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  scenarioId   String   @map("scenario_id")
+  language     String
+  level        Int
+  totalTurns   Int      @default(10) @map("total_turns")
+  turnsCompleted Int    @default(0) @map("turns_completed")
+  status       String   @default("in_progress") // in_progress | completed | abandoned
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  turns  Turn[]
+  review Review?
+
+  @@map("sessions")
+}
+
+model Turn {
+  id          String   @id @default(cuid())
+  sessionId   String   @map("session_id")
+  turnIndex   Int      @map("turn_index")
+  userText    String?  @map("user_text")
+  aiText      String?  @map("ai_text")
+  userAudioUrl String? @map("user_audio_url")
+  aiAudioUrl   String? @map("ai_audio_url")
+  durationMs  Int?     @map("duration_ms")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  session Session @relation(fields: [sessionId], references: [id])
+
+  @@unique([sessionId, turnIndex])
+  @@map("turns")
+}
+
+model Review {
+  id            String   @id @default(cuid())
+  sessionId     String   @unique @map("session_id")
+  status        String   @default("pending") // pending | processing | completed | failed
+  pronunciation Int?
+  grammar       Int?
+  vocabulary    Int?
+  fluency       Int?
+  interaction   Int?
+  overallComment String? @map("overall_comment")
+  highlights    String?  // JSON array
+  suggestions   String?  // JSON array
+  corrections   String?  // JSON array of TurnCorrection
+  rawResponse   String?  @map("raw_response") // Full LLM response
+  createdAt     DateTime @default(now()) @map("created_at")
+  completedAt   DateTime? @map("completed_at")
+
+  session Session @relation(fields: [sessionId], references: [id])
+
+  @@map("reviews")
+}

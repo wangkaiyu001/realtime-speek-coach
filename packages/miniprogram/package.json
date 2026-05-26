@@ -1,0 +1,14 @@
+{
+  "name": "@rsc/miniprogram",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "echo 'miniprogram build placeholder'",
+    "test": "echo 'miniprogram tests placeholder'"
+  },
+  "devDependencies": {
+    "miniprogram-api-typings": "^3.12.0",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@rsc/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./ws": "./src/ws.ts",
+    "./api": "./src/api.ts",
+    "./config": "./src/config.ts",
+    "./scenarios": "./src/scenarios.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}
