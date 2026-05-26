@@ -1,6 +1,7 @@
 import { AppConfig } from '../../../contracts/src/config.js';
-import { ReviewReport, ReviewDimensions, TurnCorrection } from '../../../contracts/src/api.js';
+import type { ReviewReport, ReviewDimensions, TurnCorrection } from '../../../contracts/src/api.js';
 import { mockReview } from '../prompts/mock-review.js';
+import { buildReviewPrompt } from '../prompts/review-prompt.js';
 
 // DeepSeek V4 Pro OpenAI-compatible client
 class DeepSeekClient {
@@ -47,7 +48,7 @@ export function createReviewWorker(config: AppConfig, prismaClient: any) {
         create: {
           sessionId,
           status: 'processing',
-          dimensions: { pronunciation_accuracy: 0, grammar: 0, vocabulary: 0, fluency: 0, interaction: 0 },
+          dimensions: { pronunciation: 0, grammar: 0, vocabulary: 0, fluency: 0, interaction: 0 },
           corrections: [],
           rawResponse: ''
         }
@@ -101,7 +102,7 @@ export function createReviewWorker(config: AppConfig, prismaClient: any) {
       const messages = buildReviewPrompt(
         session.language,
         session.level,
-        session.turns.map(turn => ({ userText: turn.userText, aiText: turn.aiText }))
+        session.turns.map((turn: { userText: string; aiText: string }) => ({ userText: turn.userText, aiText: turn.aiText }))
       );
 
       // Call LLM
@@ -127,10 +128,3 @@ export function createReviewWorker(config: AppConfig, prismaClient: any) {
     }
   };
 }
-
-// Import buildReviewPrompt (will be implemented in review-prompt.ts)
-declare function buildReviewPrompt(
-  language: string,
-  level: string,
-  turns: { userText: string; aiText: string }[]
-): { role: string; content: string }[];

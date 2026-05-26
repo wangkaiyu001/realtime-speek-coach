@@ -38,7 +38,7 @@ export function createTtsClient(config: AppConfig): TtsClient {
     });
 
     ws.on('error', (error) => {
-      logger.error('TTS WebSocket error:', error);
+      logger.error({ err: error }, 'TTS WebSocket error');
     });
 
     ws.on('close', (code, reason) => {
@@ -67,6 +67,7 @@ export function createTtsClient(config: AppConfig): TtsClient {
         throw new Error('TTS WebSocket not connected');
       }
 
+      const socket = ws;
       const requestId = currentRequestId++;
       const voice = language === 'en' ? 'en-US-Standard-B' : 'ja-JP-Standard-A';
 
@@ -79,11 +80,11 @@ export function createTtsClient(config: AppConfig): TtsClient {
                 const audioBuffer = Buffer.from(event.audio, 'base64');
                 onAudioChunk(audioBuffer, event.isLast);
                 if (event.isLast) {
-                  ws?.off('message', messageHandler);
+                  socket.off('message', messageHandler);
                   resolve();
                 }
               } else if (event.type === 'error') {
-                ws?.off('message', messageHandler);
+                socket.off('message', messageHandler);
                 reject(new Error(`TTS error: ${event.message}`));
               }
             }
@@ -93,9 +94,9 @@ export function createTtsClient(config: AppConfig): TtsClient {
           }
         };
 
-        ws.on('message', messageHandler);
+        socket.on('message', messageHandler);
 
-        ws.send(JSON.stringify({
+        socket.send(JSON.stringify({
           type: 'start_tts',
           requestId,
           config: {

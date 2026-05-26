@@ -4,7 +4,7 @@
 class Recorder {
   private recorderManager: WechatMiniprogram.RecorderManager | null = null;
   private onFrameCallback: ((data: ArrayBuffer) => void) | null = null;
-  private isRecording = false;
+  private recording = false;
 
   constructor() {
     this.recorderManager = wx.getRecorderManager();
@@ -15,20 +15,20 @@ class Recorder {
     });
 
     this.recorderManager.onStop(() => {
-      this.isRecording = false;
+      this.recording = false;
     });
 
     this.recorderManager.onError((err) => {
       console.error('Recorder error:', err);
-      this.isRecording = false;
+      this.recording = false;
     });
   }
 
   start(onFrame: (data: ArrayBuffer) => void) {
-    if (this.isRecording) return;
+    if (this.recording) return;
 
     this.onFrameCallback = onFrame;
-    this.isRecording = true;
+    this.recording = true;
     this.recorderManager?.start({
       duration: 60000,
       sampleRate: 16000,
@@ -40,15 +40,15 @@ class Recorder {
   }
 
   stop() {
-    if (!this.isRecording) return;
+    if (!this.recording) return;
 
     this.recorderManager?.stop();
-    this.isRecording = false;
+    this.recording = false;
     this.onFrameCallback = null;
   }
 
-  isRecording() {
-    return this.isRecording;
+  getIsRecording(): boolean {
+    return this.recording;
   }
 }
 

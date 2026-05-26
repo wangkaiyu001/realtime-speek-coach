@@ -1,8 +1,8 @@
-import { ReviewReport, ReviewDimensions, TurnCorrection } from '../../../contracts/src/api.js';
+import type { ReviewReport, ReviewDimensions, TurnCorrection } from '../../../contracts/src/api.js';
 
 const FEW_SHOT_EXAMPLE = `{
   "dimensions": {
-    "pronunciation_accuracy": 85,
+    "pronunciation": 85,
     "grammar": 78,
     "vocabulary": 82,
     "fluency": 75,
@@ -47,13 +47,13 @@ AI: ${turn.aiText}`).join('\n\n');
   const systemPrompt = `You are an expert IELTS/JSST examiner. Analyze the user's speaking performance and provide a comprehensive review. Follow these instructions strictly:
 
 1. Evaluate the user's performance across 5 dimensions (score 0-100):
-   - pronunciation_accuracy: How accurate is the user's pronunciation?
+   - pronunciation: How accurate is the user's pronunciation?
    - grammar: How correct is the user's grammar?
    - vocabulary: How appropriate and varied is the user's vocabulary?
    - fluency: How smooth and natural is the user's speech?
    - interaction: How well does the user interact with the AI?
 
-2. Provide an overall_comment (2-3 sentences in ${language} with Chinese translation)
+2. Provide an overall_comment (2-3 sentences in \${language} with Chinese translation)
 
 3. List 2-3 highlights (things the user did well)
 

@@ -1,23 +1,12 @@
 // pages/review/index.ts
 // Review page
 
-import { getReview } from '../../utils/api';
-
-interface Review {
-  id: string;
-  status: string;
-  score: number;
-  radar: { pronunciation: number; fluency: number; vocabulary: number; grammar: number; coherence: number };
-  comment: string;
-  highlights: string[];
-  suggestions: string[];
-  corrections: { user: string; native: string }[];
-}
+import { getReview, ReviewResult } from '../../utils/api';
 
 Page({
   data: {
     sessionId: '',
-    review: null as Review | null,
+    review: null as ReviewResult | null,
     isLoading: true,
     isComplete: false,
   },
@@ -25,7 +14,7 @@ Page({
   onLoad(options: { sessionId: string }) {
     this.setData({ sessionId: options.sessionId });
     this.pollReview();
-  }
+  },
 
   async pollReview() {
     try {
@@ -46,15 +35,15 @@ Page({
       console.error('Error fetching review:', error);
       this.setData({ isLoading: false });
     }
-  }
+  },
 
   onBackToHub() {
     wx.navigateTo({ url: '/pages/hub/index' });
-  }
+  },
 
   onRetry() {
     wx.navigateTo({
-      url: `/pages/practice/index?scenarioId=${this.data.review?.scenarioId}`,
+      url: `/pages/practice/index?scenarioId=${this.data.review?.id}`,
     });
-  }
+  },
 });

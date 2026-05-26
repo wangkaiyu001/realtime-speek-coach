@@ -1,8 +1,17 @@
-import { ReviewReport, ReviewDimensions, TurnCorrection } from '../../../contracts/src/api.js';
+import type { ReviewDimensions, TurnCorrection } from '../../../contracts/src/api.js';
 
-export const mockReview: ReviewReport = {
+/** Shape of the review data returned by the LLM (without DB fields). */
+export interface ReviewLlmOutput {
+  dimensions: ReviewDimensions;
+  overallComment: string;
+  highlights: string[];
+  suggestions: string[];
+  corrections: TurnCorrection[];
+}
+
+export const mockReview: ReviewLlmOutput = {
   dimensions: {
-    pronunciation_accuracy: 82,
+    pronunciation: 82,
     grammar: 76,
     vocabulary: 85,
     fluency: 78,

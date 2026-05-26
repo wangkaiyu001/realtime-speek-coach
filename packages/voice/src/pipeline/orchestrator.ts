@@ -38,7 +38,6 @@ export function createPipeline(
   function handleAsrPartial(text: string) {
     onFrame({
       type: 'asr_partial',
-      turnIndex: currentTurnIndex,
       text
     });
   }
@@ -54,23 +53,27 @@ export function createPipeline(
     isProcessing = true;
 
     try {
+      let accumulated = '';
       const responseGenerator = llmRouter.generateResponse(text);
       for await (const delta of responseGenerator) {
         if (abortController.signal.aborted) break;
+        accumulated += delta;
         onFrame({
           type: 'llm_delta',
-          turnIndex: currentTurnIndex,
-          delta
+          text: delta,
+          accumulated
         });
         sentenceBuffer.push(delta);
       }
       sentenceBuffer.flush();
     } catch (error) {
-      logger.error('LLM processing error:', error);
+      logger.error({ err: error }, 'LLM processing error');
     } finally {
       isProcessing = false;
     }
   }
+
+  let ttsSeq = 0;
 
   async function handleSentence(sentence: string) {
     if (abortController.signal.aborted) return;
@@ -79,19 +82,39 @@ export function createPipeline(
       await ttsClient.synthesize(sentence, 'en', (chunk, isLast) => {
         onFrame({
           type: 'tts_chunk',
-          turnIndex: currentTurnIndex,
-          audio: chunk.toString('base64'),
+          data: chunk.toString('base64'),
+          seq: ttsSeq++,
           isLast
         });
       });
     } catch (error) {
-      logger.error('TTS synthesis error:', error);
+      logger.error({ err: error }, 'TTS synthesis error');
     }
+  }
+
+  function abort() {
+    abortController.abort();
+    if (asrClient) {
+      asrClient.stop();
+      asrClient = null;
+    }
+    sentenceBuffer.flush();
+    if (currentTurnIndex >= 0) {
+      onFrame({
+        type: 'turn_end',
+        turnIndex: currentTurnIndex,
+        totalTurns: 0,
+        sessionComplete: false
+      });
+    }
+    currentTurnIndex = -1;
+    isProcessing = false;
+    logger.info('Pipeline aborted');
   }
 
   return {
     startTurn: (turnIndex: number) => {
-      this.abort();
+      abort();
       abortController = new AbortController();
       currentTurnIndex = turnIndex;
       asrClient = asrClientFactory({
@@ -112,22 +135,6 @@ export function createPipeline(
         asrClient.stop();
       }
     },
-    abort: () => {
-      abortController.abort();
-      if (asrClient) {
-        asrClient.stop();
-        asrClient = null;
-      }
-      sentenceBuffer.flush();
-      if (currentTurnIndex >= 0) {
-        onFrame({
-          type: 'turn_end',
-          turnIndex: currentTurnIndex
-        });
-      }
-      currentTurnIndex = -1;
-      isProcessing = false;
-      logger.info('Pipeline aborted');
-    }
+    abort
   };
 }

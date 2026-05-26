@@ -2,7 +2,18 @@
 // WebSocket client with auto-reconnect and heartbeat
 
 import { globalData } from '../app';
-import { ClientFrame, ServerFrame } from '../../contracts/src/ws';
+
+/** Frames sent from client to server */
+interface ClientFrame {
+  type: string;
+  data?: unknown;
+}
+
+/** Frames received from server */
+interface ServerFrame {
+  type: string;
+  data?: unknown;
+}
 
 interface WsClientOptions {
   url: string;
@@ -20,7 +31,7 @@ class WsClient {
   private retries = 0;
   private maxRetries: number;
   private heartbeatInterval: number;
-  private heartbeatTimer: NodeJS.Timeout | null = null;
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private eventListeners: Record<EventType, ((data: any) => void)[]> = {
     asr_partial: [],
     asr_final: [],
@@ -41,12 +52,11 @@ class WsClient {
 
   connect() {
     if (this.socket) {
-      this.socket.close();
+      this.socket.close({});
     }
 
     this.socket = wx.connectSocket({
       url: `${this.url}?token=${this.token}`,
-      method: 'GET',
     });
 
     this.socket.onOpen(() => {
@@ -58,7 +68,8 @@ class WsClient {
 
     this.socket.onMessage((res) => {
       try {
-        const frame = JSON.parse(res.data) as ServerFrame;
+        const raw = typeof res.data === 'string' ? res.data : '';
+        const frame = JSON.parse(raw) as ServerFrame;
         switch (frame.type) {
           case 'asr_partial':
             this.emit('asr_partial', frame.data);
@@ -114,7 +125,7 @@ class WsClient {
 
   close() {
     if (this.socket) {
-      this.socket.close();
+      this.socket.close({});
       this.socket = null;
     }
     this.stopHeartbeat();

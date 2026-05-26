@@ -1,6 +1,8 @@
 // pages/practice/index.ts
 // Practice room - core conversation page
 
+import { IAppOption } from '../../app';
+
 const app = getApp<IAppOption>();
 
 Page({

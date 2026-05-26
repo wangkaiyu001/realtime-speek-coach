@@ -47,7 +47,7 @@ export const websocketHandler = (connection: WebSocket, request: any) => {
   const userId = (payload as { userId: string }).userId;
   console.log(`[WS] New connection from user: ${userId}`);
 
-  connection.on('message', async (raw) => {
+  connection.on('message', async (raw: any) => {
     try {
       const frame: WsClientFrame = JSON.parse(raw.toString());
       await handleFrame(connection, userId, frame);
@@ -70,7 +70,7 @@ export const websocketHandler = (connection: WebSocket, request: any) => {
     }
   });
 
-  connection.on('error', (err) => {
+  connection.on('error', (err: any) => {
     console.error('[WS] Connection error:', err);
   });
 };

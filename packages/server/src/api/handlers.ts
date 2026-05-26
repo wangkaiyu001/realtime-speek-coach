@@ -71,7 +71,7 @@ export async function getSessionsHandler(request: FastifyRequest, reply: Fastify
     include: { review: { select: { id: true, status: true } } },
   });
 
-  const result = sessions.map((s) => ({
+  const result = sessions.map((s: any) => ({
     id: s.id,
     scenarioId: s.scenarioId,
     scenarioTitle: SEED_SCENARIOS.find((sc) => sc.id === s.scenarioId)?.title || 'Unknown',

@@ -34,7 +34,7 @@ export function createAsrClient(config: AppConfig): (callbacks: AsrCallbacks) =>
             callbacks.onFinal(event.text);
           }
         } catch (error) {
-          logger.error('Failed to parse ASR message:', error);
+          logger.error({ err: error }, 'Failed to parse ASR message');
         }
       }
     };
@@ -71,7 +71,7 @@ export function createAsrClient(config: AppConfig): (callbacks: AsrCallbacks) =>
       ws.on('message', handleMessage);
 
       ws.on('error', (error) => {
-        logger.error('ASR WebSocket error:', error);
+        logger.error({ err: error }, 'ASR WebSocket error');
       });
 
       ws.on('close', (code, reason) => {

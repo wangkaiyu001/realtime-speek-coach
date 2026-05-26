@@ -3,16 +3,20 @@ import { loginHandler, setLanguageHandler, getScenariosHandler, getSessionsHandl
 import { authHook } from './auth.js';
 
 const apiRoutes: FastifyPluginAsync = async (fastify) => {
-  // Public routes
-  fastify.post('/auth/login', loginHandler);
-  fastify.get('/health', healthHandler);
+  // Public routes (no auth)
+  fastify.register(async (publicScope) => {
+    publicScope.post('/auth/login', loginHandler);
+    publicScope.get('/health', healthHandler);
+  });
 
-  // Protected routes
-  fastify.addHook('preHandler', authHook);
-  fastify.post('/user/language', setLanguageHandler);
-  fastify.get('/scenarios', getScenariosHandler);
-  fastify.get('/sessions', getSessionsHandler);
-  fastify.get('/reviews/:sessionId', getReviewHandler);
+  // Protected routes (auth required)
+  fastify.register(async (protectedScope) => {
+    protectedScope.addHook('preHandler', authHook);
+    protectedScope.post('/user/language', setLanguageHandler);
+    protectedScope.get('/scenarios', getScenariosHandler);
+    protectedScope.get('/sessions', getSessionsHandler);
+    protectedScope.get('/reviews/:sessionId', getReviewHandler);
+  });
 };
 
 export default apiRoutes;

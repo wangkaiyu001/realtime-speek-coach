@@ -1,15 +1,7 @@
 // pages/hub/index.ts
 // Scenario hub page
 
-import { getScenarios } from '../../utils/api';
-
-interface Scenario {
-  id: string;
-  category: string;
-  title: string;
-  description: string;
-  difficulty: string;
-}
+import { getScenarios, Scenario } from '../../utils/api';
 
 Page({
   data: {

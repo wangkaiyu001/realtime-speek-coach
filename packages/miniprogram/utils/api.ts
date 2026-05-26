@@ -9,6 +9,25 @@ interface ApiResponse<T> {
   message: string;
 }
 
+export interface Scenario {
+  id: string;
+  category: string;
+  title: string;
+  description: string;
+  difficulty: string;
+}
+
+export interface ReviewResult {
+  id: string;
+  status: string;
+  score: number;
+  radar: { pronunciation: number; fluency: number; vocabulary: number; grammar: number; coherence: number };
+  comment: string;
+  highlights: string[];
+  suggestions: string[];
+  corrections: { user: string; native: string }[];
+}
+
 const DEFAULT_RETRY_COUNT = 3;
 const RETRY_DELAY = 1000;
 
@@ -19,7 +38,7 @@ const mockData = {
     { id: '2', category: 'daily', title: 'Ordering Food', description: 'Practice ordering food in a restaurant', difficulty: 'beginner' },
     { id: '3', category: 'travel', title: 'Asking for Directions', description: 'Practice asking for directions', difficulty: 'intermediate' },
     { id: '4', category: 'travel', title: 'Hotel Check-in', description: 'Practice checking into a hotel', difficulty: 'intermediate' },
-  ],
+  ] as Scenario[],
   review: {
     id: '123',
     status: 'completed',
@@ -32,10 +51,10 @@ const mockData = {
       { user: 'I go to park yesterday', native: 'I went to the park yesterday' },
       { user: 'He like coffee', native: 'He likes coffee' },
     ],
-  },
+  } as ReviewResult,
 };
 
-export async function request<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: string, data?: any, retries = DEFAULT_RETRY_COUNT): Promise<T> {
+export async function request<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: string, data?: string | WechatMiniprogram.IAnyObject | ArrayBuffer, retries = DEFAULT_RETRY_COUNT): Promise<T> {
   const { apiUrl, token } = globalData;
   const url = `${apiUrl}${path}`;
 
@@ -73,7 +92,7 @@ export async function request<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path
         fail: (err) => {
           if (retries > 0) {
             setTimeout(() => {
-              request(method, path, data, retries - 1)
+              request<T>(method, path, data, retries - 1)
                 .then(resolve)
                 .catch(reject);
             }, RETRY_DELAY);
@@ -91,16 +110,16 @@ export async function request<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path
 // API methods
 
 // User
-export async function setUserLanguage(language: string) {
-  return request('POST', '/user/language', { language });
+export async function setUserLanguage(language: string): Promise<void> {
+  return request<void>('POST', '/user/language', { language });
 }
 
 // Scenarios
-export async function getScenarios() {
-  return request('GET', '/scenarios');
+export async function getScenarios(): Promise<Scenario[]> {
+  return request<Scenario[]>('GET', '/scenarios');
 }
 
 // Review
-export async function getReview(sessionId: string) {
-  return request('GET', `/reviews/${sessionId}`);
+export async function getReview(sessionId: string): Promise<ReviewResult> {
+  return request<ReviewResult>('GET', `/reviews/${sessionId}`);
 }

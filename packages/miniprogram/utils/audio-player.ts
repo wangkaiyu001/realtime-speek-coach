@@ -1,17 +1,15 @@
 // utils/audio-player.ts
-// Audio player using WebAudioContext
+// Audio player using WeChat InnerAudioContext
 
 class AudioPlayer {
-  private audioContext: AudioContext | null = null;
+  private audioContext: WechatMiniprogram.InnerAudioContext | null = null;
   private audioQueue: ArrayBuffer[] = [];
-  private isPlaying = false;
-  private currentSource: AudioBufferSourceNode | null = null;
+  private playing = false;
 
   constructor() {
-    // Initialize AudioContext on user interaction
     wx.onAudioInterruptionEnd(() => {
-      if (this.audioContext) {
-        this.audioContext.resume();
+      if (this.playing && this.audioContext) {
+        this.audioContext.play();
       }
     });
   }
@@ -25,7 +23,7 @@ class AudioPlayer {
       });
       this.audioContext.onError((err) => {
         console.error('Audio player error:', err);
-        this.isPlaying = false;
+        this.playing = false;
         this.playNext();
       });
     }
@@ -34,18 +32,18 @@ class AudioPlayer {
   play(chunk: ArrayBuffer) {
     this.initAudioContext();
     this.audioQueue.push(chunk);
-    if (!this.isPlaying) {
+    if (!this.playing) {
       this.playNext();
     }
   }
 
   private playNext() {
     if (!this.audioContext || this.audioQueue.length === 0) {
-      this.isPlaying = false;
+      this.playing = false;
       return;
     }
 
-    this.isPlaying = true;
+    this.playing = true;
     const chunk = this.audioQueue.shift()!;
     const base64 = wx.arrayBufferToBase64(chunk);
     const audioUrl = `data:audio/mp3;base64,${base64}`;
@@ -59,11 +57,11 @@ class AudioPlayer {
       this.audioContext.stop();
     }
     this.audioQueue = [];
-    this.isPlaying = false;
+    this.playing = false;
   }
 
-  isPlaying() {
-    return this.isPlaying;
+  getIsPlaying(): boolean {
+    return this.playing;
   }
 }
 

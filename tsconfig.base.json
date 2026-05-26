@@ -11,10 +11,7 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "composite": true
+    "sourceMap": true
   },
   "exclude": ["node_modules", "dist"]
 }
