@@ -1,0 +1,83 @@
+<!-- pages/review/index.wxml -->
+<view class="container">
+  <view class="text-center mt-20 mb-20">
+    <text class="title">Practice Review</text>
+  </view>
+
+  <view wx:if="{{isLoading}}">
+    <view class="loading">Loading review...</view>
+  </view>
+
+  <view wx:else>
+    <view class="card">
+      <view class="text-center mb-20">
+        <text class="score">Score: {{review.score}}/100</text>
+      </view>
+
+      <view class="radar-container">
+        <view class="radar-item">
+          <text class="radar-label">Pronunciation</text>
+          <text class="radar-value">{{review.radar.pronunciation}}%</text>
+        </view>
+        <view class="radar-item">
+          <text class="radar-label">Fluency</text>
+          <text class="radar-value">{{review.radar.fluency}}%</text>
+        </view>
+        <view class="radar-item">
+          <text class="radar-label">Vocabulary</text>
+          <text class="radar-value">{{review.radar.vocabulary}}%</text>
+        </view>
+        <view class="radar-item">
+          <text class="radar-label">Grammar</text>
+          <text class="radar-value">{{review.radar.grammar}}%</text>
+        </view>
+        <view class="radar-item">
+          <text class="radar-label">Coherence</text>
+          <text class="radar-value">{{review.radar.coherence}}%</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="section-title">Overall Comment</text>
+      <text class="comment">{{review.comment}}</text>
+    </view>
+
+    <view class="card">
+      <text class="section-title">Highlights</text>
+      <view class="highlights">
+        <view wx:for="{{review.highlights}}" wx:key="{{index}}" class="highlight-item">
+          <text class="highlight-text">{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="section-title">Suggestions</text>
+      <view class="suggestions">
+        <view wx:for="{{review.suggestions}}" wx:key="{{index}}" class="suggestion-item">
+          <text class="suggestion-text">{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="section-title">Corrections</text>
+      <view class="corrections">
+        <view wx:for="{{review.corrections}}" wx:key="{{index}}" class="correction-item">
+          <view class="correction-user">You: {{item.user}}</view>
+          <view class="correction-native">Native: {{item.native}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="button-group">
+      <button class="button" bindtap="onBackToHub">
+        Back to Hub
+      </button>
+      <button class="button" bindtap="onRetry">
+        Retry
+      </button>
+    </view>
+  </view>
+</view>

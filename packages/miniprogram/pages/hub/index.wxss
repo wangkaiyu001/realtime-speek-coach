@@ -1,0 +1,67 @@
+/* pages/hub/index.wxss */
+
+.title {
+  font-size: 48rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+}
+
+.category-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin: 20rpx 0 10rpx 0;
+  color: var(--primary-color);
+}
+
+.scenarios-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.scenario-card {
+  background-color: var(--card-background);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.scenario-card:hover {
+  transform: translateY(-4rpx);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+}
+
+.scenario-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 8rpx;
+}
+
+.scenario-description {
+  font-size: 28rpx;
+  color: var(--light-text-color);
+  margin-bottom: 12rpx;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.scenario-difficulty {
+  font-size: 24rpx;
+  color: var(--primary-color);
+  background-color: rgba(22, 119, 255, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  display: inline-block;
+}
+
+.loading {
+  text-align: center;
+  padding: 40rpx;
+  font-size: 32rpx;
+  color: var(--light-text-color);
+}

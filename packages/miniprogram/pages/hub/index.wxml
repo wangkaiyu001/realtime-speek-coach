@@ -1,0 +1,26 @@
+<!-- pages/hub/index.wxml -->
+<view class="container">
+  <view class="text-center mt-20 mb-20">
+    <text class="title">Choose a Scenario</text>
+  </view>
+
+  <view wx:if="{{isLoading}}">
+    <view class="loading">Loading scenarios...</view>
+  </view>
+
+  <view wx:else>
+    <view wx:for="{{categories}}" wx:key="{{index}}">
+      <view class="category-title">
+        {{category}}
+      </view>
+
+      <view class="scenarios-grid">
+        <view wx:for="{{scenarios.filter(s => s.category === category)}}" wx:key="{{item.id}}" class="scenario-card" bindtap="onScenarioTap" data-id="{{item.id}}">
+          <view class="scenario-title">{{item.title}}</view>
+          <view class="scenario-description">{{item.description}}</view>
+          <view class="scenario-difficulty">{{item.difficulty}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

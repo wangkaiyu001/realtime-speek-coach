@@ -1,0 +1,44 @@
+<!-- pages/practice/index.wxml -->
+<view class="container">
+  <view class="turn-indicator">
+    Turn {{turnCount}}/{{maxTurns}}
+  </view>
+
+  <view class="chat-container">
+    <!-- AI Response -->
+    <view class="message ai-message" wx:if="{{llmText}}">
+      <image class="avatar" src="/images/ai-avatar.png" />
+      <view class="message-content">{{llmText}}</view>
+    </view>
+
+    <!-- User Input -->
+    <view class="message user-message" wx:if="{{asrText}}">
+      <image class="avatar" src="/images/user-avatar.png" />
+      <view class="message-content">{{asrText}}</view>
+    </view>
+  </view>
+
+  <!-- Hint Modal -->
+  <view class="modal" wx:if="{{showHint}}">
+    <view class="modal-content">
+      <text class="modal-title">Hint</text>
+      <text class="modal-text">{{hintText}}</text>
+      <button class="button" bindtap="hideHint">Close</button>
+    </view>
+  </view>
+
+  <!-- Controls -->
+  <view class="controls">
+    <button class="button hint-button" bindtap="showHint">
+      Hint
+    </button>
+
+    <button class="button record-button" bindtap="toggleRecording" hold-action="longpress" bindlongpress="onHoldStart" bindtouchend="onHoldEnd">
+      {{isRecording ? 'Stop' : 'Record'}}
+    </button>
+
+    <button class="button end-button" bindtap="endPractice">
+      End Early
+    </button>
+  </view>
+</view>

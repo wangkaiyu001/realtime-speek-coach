@@ -1,0 +1,38 @@
+/* pages/onboarding/index.wxss */
+
+.title {
+  font-size: 48rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+}
+
+.language-card {
+  background-color: var(--card-background);
+  border: 2rpx solid var(--border-color);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.language-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 4rpx 12rpx rgba(22, 119, 255, 0.1);
+}
+
+.flag {
+  width: 60rpx;
+  height: 40rpx;
+  border-radius: 8rpx;
+}
+
+.language-text {
+  font-size: 36rpx;
+  flex: 1;
+  text-align: left;
+}
+
+radio {
+  transform: scale(1.5);
+  margin-left: 20rpx;
+}

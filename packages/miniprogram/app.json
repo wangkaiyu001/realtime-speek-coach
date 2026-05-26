@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "pages/onboarding/index",
+    "pages/hub/index",
+    "pages/practice/index",
+    "pages/review/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "Realtime Speak Coach",
+    "navigationBarTextStyle": "black"
+  },
+  "sitemapLocation": "sitemap.json"
+}
