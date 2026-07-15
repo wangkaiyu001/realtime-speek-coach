@@ -84,3 +84,8 @@ or deploy the Docker image to another long-running container platform that
 supports WebSocket connections. After a stable HTTPS origin is available, update
 `PRODUCTION_SERVER_ORIGIN`, run the quality gates, run the public smoke test, and
 push the new commit.
+
+The repository now publishes a ready-to-run Docker image on each `main` push via
+GitHub Actions. See `docs/container-deploy.md` for GHCR image tags and the
+generic deployment path for Railway, Render, Fly.io, ECS, or another stable
+container host while CloudBase is isolated.

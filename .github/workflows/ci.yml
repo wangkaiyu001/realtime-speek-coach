@@ -24,3 +24,4 @@ jobs:
         env:
           MOCK: '1'
           DATABASE_URL: 'file:../prisma/test.db'
+      - run: pnpm build

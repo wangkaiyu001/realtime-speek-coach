@@ -90,6 +90,11 @@ CLOUDBASE_ENV_ID=<envId> sh scripts/cloudbase-deploy.sh
 
 See `docs/cloudbase-deploy.md` for the full CloudBase MCP/Codex setup, deployment steps, mini program domain configuration, and SQLite persistence notes.
 
+If CloudBase is blocked or isolated, deploy the published Docker image from
+GitHub Container Registry to another long-running container platform with
+WebSocket support. See `docs/container-deploy.md` for the image tags, required
+environment variables, persistence notes, and verification steps.
+
 ## 4. Mini program endpoint and login mode
 
 Before creating a trial/release build, edit:
