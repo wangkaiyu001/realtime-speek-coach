@@ -67,6 +67,10 @@ and WSS domains to the WeChat mini program legal domain settings.
 ## Platform notes
 
 Suitable targets include CloudBase Cloud Run, Railway, Render, Fly.io, ECS, or
-any other Docker host with WebSocket support. The current CloudBase environment
-`code-realtime-d7gbuxrbze297e600` is isolated, so it cannot serve as the stable
-production host until the Tencent CloudBase account/resource state is restored.
+any other Docker host with WebSocket support. The current preferred MVP host is
+CloudBase Cloud Run environment `code-realtime-d7gbuxrbze297e600`, service
+`echoia-server`, verified at:
+
+```text
+https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
+```

@@ -1,4 +1,4 @@
-const base = (process.env.PUBLIC_ORIGIN || 'https://deals-crest-cartridges-instead.trycloudflare.com').replace(/\/$/, '');
+const base = (process.env.PUBLIC_ORIGIN || 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com').replace(/\/$/, '');
 const scenarioId = 'en-business-01';
 const login = await fetch(`${base}/api/v1/auth/login`, {
   method: 'POST',

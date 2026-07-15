@@ -118,7 +118,10 @@ CloudBase trial endpoint intended for stable hosting:
 https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
 ```
 
-The repository may temporarily point `PRODUCTION_SERVER_ORIGIN` at a Cloudflare quick tunnel while this CloudBase endpoint is isolated. See `docs/current-online-status.md` for the currently verified public trial URL.
+The repository now points `PRODUCTION_SERVER_ORIGIN` at this stable CloudBase
+endpoint. Do not use the obsolete Cloudflare quick tunnel for trial/release
+builds. See `docs/current-online-status.md` for the currently verified public
+trial URL and latest run IDs.
 
 If this returns `503`, redeploy the service and check Cloud Run logs. A common
 cause is an old container image that was built before the production defaults in
@@ -131,15 +134,9 @@ In that state CloudBase can still list the service as `normal` and `Public
 Access: Allowed`, but the runtime gateway rejects traffic and deployment APIs
 cannot read the existing service detail. Restore/renew the CloudBase resource
 pack or raise the service quota in the Tencent CloudBase console, then rerun the
-deployment command and the health/WebSocket smoke checks.
-
-Current verified blocked state for environment
-`code-realtime-d7gbuxrbze297e600` on 2026-07-15:
-
-```text
-GET /api/v1/health -> 503 SERVICE_FORBIDDEN: Your server is isolated
-tcb cloudrun deploy -> [DescribeCloudRunServerDetail] The current resource is isolated.
-```
+deployment command and the health/WebSocket smoke checks. This was the historical
+blocked state before the 2026-07-15 resource recovery; it is no longer the
+current verified state.
 
 ## 5. Point the mini program to CloudBase
 

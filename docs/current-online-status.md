@@ -1,39 +1,33 @@
 # Current online status
 
-Last verified: 2026-07-15 23:46 Asia/Shanghai.
+Last verified: 2026-07-16 00:01 Asia/Shanghai.
 
 ## GitHub sync status
 
-The local `main` branch was previously synced with GitHub `origin/main` at:
+The last verified application commit on GitHub `main` is:
 
 ```text
-3888828733e2db748a4c73ad2e6e0f52c4987f98 Update current sync and tunnel status
+32d6fc227253e2ee436bc152949cc37a7af1003c Point mini program to CloudBase backend
 ```
 
-The latest GitHub Actions runs for that commit completed successfully:
+The GitHub Actions runs for that application commit completed successfully:
 
 ```text
-CI: success, run 29427710672
-Publish Docker image: success, run 29427710546
+CI: success, run 29430289702
+Publish Docker image: success, run 29430289378
 ```
 
-The Docker image publish workflow reported these tags:
+The Docker image publish workflow publishes these tags on each `main` push:
 
 ```text
 ghcr.io/wangkaiyu001/realtime-speek-coach:main
 ghcr.io/wangkaiyu001/realtime-speek-coach:latest
-ghcr.io/wangkaiyu001/realtime-speek-coach:sha-3888828
+ghcr.io/wangkaiyu001/realtime-speek-coach:sha-<commit-sha>
 ```
 
-The latest published image digest recorded from the workflow is:
-
-```text
-sha256:78b5d56a0353151b2886a90abf9711c21950975cd94de599107e216015ac8b38
-```
-
-This document and the mini program endpoint are being updated after CloudBase
-resource recovery. After the next push, re-check the new GitHub `main` CI and
-image publish runs before treating GitHub as fully synced again.
+For the current repository synchronization state, use `git status --short
+--branch` and `git rev-list --left-right --count origin/main...HEAD`; both
+should report no local/remote divergence before release handoff.
 
 ## Stable CloudBase public trial status
 
