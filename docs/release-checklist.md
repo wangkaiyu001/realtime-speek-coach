@@ -95,16 +95,18 @@ Before creating a trial/release build, edit:
 packages/miniprogram/config.ts
 ```
 
-Set:
+Set it to the verified public HTTPS origin for the backend. The current temporary demo origin is:
 
 ```ts
-const PRODUCTION_SERVER_ORIGIN = 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com';
+const PRODUCTION_SERVER_ORIGIN = 'https://deals-crest-cartridges-instead.trycloudflare.com';
 ```
 
 The mini program will derive:
 
-- API: `https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1`
-- WebSocket: `wss://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/ws`
+- API: `https://deals-crest-cartridges-instead.trycloudflare.com/api/v1`
+- WebSocket: `wss://deals-crest-cartridges-instead.trycloudflare.com/ws`
+
+This tunnel origin is suitable only for short trial/demo validation because it depends on a local Mac backend and cloudflared process staying alive. For stable production, replace it with a long-running CloudBase or other container-hosting HTTPS origin after that deployment passes the same health and WebSocket smoke checks.
 
 Trial/release builds now fail fast if `PRODUCTION_SERVER_ORIGIN` is empty, so they will not accidentally point real users at `localhost`. For preview testing without editing the constant, set mini program storage keys `serverOrigin`, `apiUrl`, or `wsUrl` in DevTools. For local development, the default remains `http://localhost:3000`.
 

@@ -108,11 +108,13 @@ curl https://<cloudbase-domain>/api/v1/health
 
 The response should include `status: ok` plus the active mock/provider flags.
 
-Current CloudBase trial endpoint used by this repository:
+CloudBase trial endpoint intended for stable hosting:
 
 ```text
 https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
 ```
+
+The repository may temporarily point `PRODUCTION_SERVER_ORIGIN` at a Cloudflare quick tunnel while this CloudBase endpoint is isolated. See `docs/current-online-status.md` for the currently verified public trial URL.
 
 If this returns `503`, redeploy the service and check Cloud Run logs. A common
 cause is an old container image that was built before the production defaults in
@@ -137,7 +139,7 @@ tcb cloudrun deploy -> [DescribeCloudRunServerDetail] The current resource is is
 
 ## 5. Point the mini program to CloudBase
 
-Edit `packages/miniprogram/config.ts`:
+Edit `packages/miniprogram/config.ts` after the stable CloudBase deployment is reachable:
 
 ```ts
 const PRODUCTION_SERVER_ORIGIN = 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com';

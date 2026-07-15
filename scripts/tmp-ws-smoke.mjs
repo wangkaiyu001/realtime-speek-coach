@@ -1,6 +1,4 @@
-import WebSocket from 'ws';
-
-const base = 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com';
+const base = (process.env.PUBLIC_ORIGIN || 'https://deals-crest-cartridges-instead.trycloudflare.com').replace(/\/$/, '');
 const scenarioId = 'en-business-01';
 const login = await fetch(`${base}/api/v1/auth/login`, {
   method: 'POST',
@@ -40,14 +38,14 @@ function finish(code=0) {
   console.log(JSON.stringify({ websocket: code === 0 ? 'ok' : 'failed', elapsedMs: Date.now() - started, frames: sanitized }, null, 2));
   process.exit(code);
 }
-ws.on('open', () => {
+ws.addEventListener('open', () => {
   ws.send(JSON.stringify({ type: 'hello', sessionId: '', scenarioId, language: 'en' }));
 });
-ws.on('message', (data) => {
-  const frame = JSON.parse(data.toString());
+ws.addEventListener('message', (event) => {
+  const frame = JSON.parse(event.data.toString());
   seen.push(frame);
   if (frame.type === 'error') finish(1);
   if (frame.type === 'turn_end' && frame.turnIndex === 0 && frame.sessionComplete === false) finish(0);
 });
-ws.on('error', (err) => { console.error('ws error', err.message); finish(1); });
+ws.addEventListener('error', (event) => { console.error('ws error', event.message || event.type); finish(1); });
 setTimeout(() => finish(1), 30000);
