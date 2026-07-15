@@ -118,6 +118,23 @@ If this returns `503`, redeploy the service and check Cloud Run logs. A common
 cause is an old container image that was built before the production defaults in
 the Dockerfile were added.
 
+If the response body contains `SERVICE_FORBIDDEN` and `Your server is isolated`,
+or if `tcb cloudrun deploy` fails with `The current resource is isolated`, the
+blocker is the CloudBase tenant/resource-pack state rather than application code.
+In that state CloudBase can still list the service as `normal` and `Public
+Access: Allowed`, but the runtime gateway rejects traffic and deployment APIs
+cannot read the existing service detail. Restore/renew the CloudBase resource
+pack or raise the service quota in the Tencent CloudBase console, then rerun the
+deployment command and the health/WebSocket smoke checks.
+
+Current verified blocked state for environment
+`code-realtime-d7gbuxrbze297e600` on 2026-07-15:
+
+```text
+GET /api/v1/health -> 503 SERVICE_FORBIDDEN: Your server is isolated
+tcb cloudrun deploy -> [DescribeCloudRunServerDetail] The current resource is isolated.
+```
+
 ## 5. Point the mini program to CloudBase
 
 Edit `packages/miniprogram/config.ts`:
