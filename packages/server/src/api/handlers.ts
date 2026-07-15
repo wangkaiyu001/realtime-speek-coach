@@ -23,8 +23,59 @@ function parseJsonArray(value: string | null): unknown[] {
 }
 
 function normalizeApiKey(value: string): string {
-  if (!value || value.startsWith('your_')) return '';
+  if (
+    !value
+    || value.startsWith('your_')
+    || value.endsWith('_here')
+    || value.startsWith('replace-')
+    || value.startsWith('change-me')
+    || value === 'wxTESTAPPID'
+  ) return '';
   return value;
+}
+
+function maskConfigured(value: string): boolean {
+  return !!normalizeApiKey(value);
+}
+
+interface WeChatSessionResponse {
+  openid?: string;
+  unionid?: string;
+  session_key?: string;
+  errcode?: number;
+  errmsg?: string;
+}
+
+async function exchangeWeChatCodeForSession(code: string): Promise<WeChatSessionResponse> {
+  const appId = normalizeApiKey(config.wx.appId);
+  const appSecret = normalizeApiKey(config.wx.appSecret);
+
+  if (!appId || !appSecret) {
+    throw new Error('WX_APP_ID and WX_APP_SECRET are required when MOCK_AUTH=0');
+  }
+
+  const params = new URLSearchParams({
+    appid: appId,
+    secret: appSecret,
+    js_code: code,
+    grant_type: 'authorization_code',
+  });
+  const wxUrl = `https://api.weixin.qq.com/sns/jscode2session?${params.toString()}`;
+
+  const wxRes = await fetch(wxUrl);
+  if (!wxRes.ok) {
+    throw new Error(`WeChat jscode2session failed with HTTP ${wxRes.status}`);
+  }
+
+  const wxData = (await wxRes.json()) as WeChatSessionResponse;
+  if (wxData.errcode) {
+    throw new Error(`WeChat jscode2session failed: ${wxData.errcode} ${wxData.errmsg || ''}`.trim());
+  }
+  if (!wxData.openid) {
+    throw new Error('WeChat jscode2session response missing openid');
+  }
+
+  return wxData;
 }
 
 function toScore(value: number | null): number {
@@ -41,11 +92,11 @@ async function runReviewWithBoundedWait(sessionId: string) {
 // Login handler
 export async function loginHandler(request: FastifyRequest, reply: FastifyReply) {
   const { code } = request.body as { code?: string };
-  const loginCode = typeof code === 'string' && code.trim() ? code.trim() : 'dev-user-001';
+  const loginCode = typeof code === 'string' && code.trim() ? code.trim() : '';
 
   if (config.mocks.auth) {
-    const mockOpenId = 'mock-openid-' + loginCode.substring(0, 32);
-    // Upsert user
+    const mockCode = loginCode || 'dev-user-001';
+    const mockOpenId = 'mock-openid-' + mockCode.substring(0, 32);
     const user = await prisma.user.upsert({
       where: { openId: mockOpenId },
       update: {},
@@ -61,12 +112,36 @@ export async function loginHandler(request: FastifyRequest, reply: FastifyReply)
     });
   }
 
-  // Real WX login (uncomment in production)
-  // const wxUrl = `https://api.weixin.qq.com/sns/jscode2session?appid=${config.wx.appId}&secret=${config.wx.appSecret}&js_code=${code}&grant_type=authorization_code`;
-  // const wxRes = await fetch(wxUrl);
-  // const wxData = await wxRes.json();
-  // ...
-  throw new Error('Real login not yet implemented - set MOCK_AUTH=1');
+  if (!loginCode) {
+    return reply.status(400).send({ error: 'WeChat login code is required' });
+  }
+
+  try {
+    const wxSession = await exchangeWeChatCodeForSession(loginCode);
+    const user = await prisma.user.upsert({
+      where: { openId: wxSession.openid! },
+      update: {
+        ...(wxSession.unionid ? { unionId: wxSession.unionid } : {}),
+      },
+      create: {
+        openId: wxSession.openid!,
+        unionId: wxSession.unionid,
+      },
+    });
+    const token = signJwt({ userId: user.id });
+    return reply.send({
+      token,
+      userId: user.id,
+      isNewUser: !user.language,
+      language: user.language as Language | undefined,
+      level: user.level,
+    });
+  } catch (error) {
+    request.log.error({ err: error }, 'WeChat login failed');
+    return reply.status(502).send({
+      error: error instanceof Error ? error.message : 'WeChat login failed',
+    });
+  }
 }
 
 // Set language handler
@@ -366,9 +441,13 @@ export async function healthHandler(_request: FastifyRequest, reply: FastifyRepl
     mock: config.mock,
     mocks: config.mocks,
     providers: {
-      deepseek: !!normalizeApiKey(config.deepseek.apiKey),
-      gemini: !!normalizeApiKey(config.gemini.apiKey),
-      volcVoice: !!normalizeApiKey(config.volcVoice.apiKey),
+      deepseek: maskConfigured(config.deepseek.apiKey),
+      gemini: maskConfigured(config.gemini.apiKey),
+      volcVoice: maskConfigured(config.volcVoice.apiKey) && maskConfigured(config.volcVoice.appKey),
+    },
+    auth: {
+      mode: config.mocks.auth ? 'mock' : 'wechat',
+      wechatConfigured: maskConfigured(config.wx.appId) && maskConfigured(config.wx.appSecret),
     },
   });
 }

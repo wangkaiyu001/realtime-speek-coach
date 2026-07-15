@@ -114,7 +114,19 @@ The mini program derives:
 - API: `https://<cloudbase-domain>/api/v1`
 - WebSocket: `wss://<cloudbase-domain>/ws`
 
+Trial/release builds intentionally stop with a visible configuration error if `PRODUCTION_SERVER_ORIGIN` is empty, preventing accidental `localhost` traffic in public builds. For temporary DevTools validation, set mini program storage key `serverOrigin` to the CloudBase origin.
+
 Also add the same HTTPS and WSS domains to the WeChat mini program request/socket legal domain settings before trial/release builds.
+
+If the mini program registration and filing are ready, disable login mocking in CloudBase and provide real WeChat credentials:
+
+```bash
+MOCK_AUTH=0
+WX_APP_ID=<your-mini-program-app-id>
+WX_APP_SECRET=<your-mini-program-app-secret>
+```
+
+Then call `/api/v1/health` and confirm `auth.mode` is `wechat` and `auth.wechatConfigured` is `true`.
 
 ## 6. Pre-release checks
 

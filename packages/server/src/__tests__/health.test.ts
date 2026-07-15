@@ -18,5 +18,8 @@ describe('Health Endpoint', () => {
     expect(body.version).toBe('0.1.0');
     expect(typeof body.uptime).toBe('number');
     expect(typeof body.mock).toBe('boolean');
+    expect(['mock', 'wechat']).toContain(body.auth.mode);
+    expect(typeof body.auth.wechatConfigured).toBe('boolean');
+    expect(body.providers).toMatchObject({ deepseek: false, gemini: false, volcVoice: false });
   });
 });

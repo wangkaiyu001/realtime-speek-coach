@@ -12,7 +12,7 @@ export interface IAppOption {
   };
 }
 
-import { getEndpointConfig, isProductionEndpointConfigured } from './config';
+import { assertEndpointConfigReady, getEndpointConfig, getMiniProgramEnvVersion, isProductionEndpointConfigured } from './config';
 
 interface LoginResponse {
   token: string;
@@ -30,14 +30,6 @@ export const globalData: IAppOption['globalData'] = {
   wsUrl: '',
   apiUrl: '',
 };
-
-function getMiniProgramEnvVersion() {
-  try {
-    return wx.getAccountInfoSync?.().miniProgram?.envVersion || 'develop';
-  } catch {
-    return 'develop';
-  }
-}
 
 function navigateByProfile(language?: string) {
   wx.reLaunch({
@@ -79,8 +71,13 @@ function restoreCachedLogin() {
   return true;
 }
 
-function bootstrapMockLogin() {
-  const code = wx.getStorageSync('mockLoginCode') || 'dev-user-001';
+function completeLogin(code: string) {
+  if (!globalData.apiUrl) {
+    if (!restoreCachedLogin()) {
+      navigateByProfile('');
+    }
+    return;
+  }
 
   wx.request({
     url: `${globalData.apiUrl}/auth/login`,
@@ -121,6 +118,36 @@ function bootstrapMockLogin() {
   });
 }
 
+function bootstrapLogin() {
+  const envVersion = getMiniProgramEnvVersion();
+  const isReleaseLike = envVersion === 'release' || envVersion === 'trial';
+
+  if (!isReleaseLike) {
+    completeLogin(wx.getStorageSync('mockLoginCode') || 'dev-user-001');
+    return;
+  }
+
+  wx.login({
+    success: (res) => {
+      if (res.code) {
+        completeLogin(res.code);
+        return;
+      }
+
+      wx.showToast({ title: '微信登录失败', icon: 'none' });
+      if (!restoreCachedLogin()) {
+        navigateByProfile('');
+      }
+    },
+    fail: () => {
+      wx.showToast({ title: '微信登录失败', icon: 'none' });
+      if (!restoreCachedLogin()) {
+        navigateByProfile('');
+      }
+    },
+  });
+}
+
 App<IAppOption>({
   globalData,
 
@@ -131,9 +158,13 @@ App<IAppOption>({
 
     const envVersion = getMiniProgramEnvVersion();
     if ((envVersion === 'release' || envVersion === 'trial') && !isProductionEndpointConfigured()) {
-      console.warn('[App] PRODUCTION_SERVER_ORIGIN is not configured. Release builds will still point to local development server.');
+      console.error('[App] PRODUCTION_SERVER_ORIGIN is not configured for release/trial build.');
     }
 
-    bootstrapMockLogin();
+    if (!assertEndpointConfigReady(endpoints)) {
+      return;
+    }
+
+    bootstrapLogin();
   },
 });

@@ -65,6 +65,14 @@ function parseBool(value: string | undefined, fallback: boolean): boolean {
   return value === '1' || value === 'true';
 }
 
+function hasSecret(value: string | undefined): boolean {
+  return !!value
+    && !value.startsWith('your_')
+    && !value.endsWith('_here')
+    && !value.startsWith('replace-')
+    && !value.startsWith('change-me');
+}
+
 function defaultDatabaseUrl(env: Record<string, string | undefined>): string {
   if (env.DATABASE_URL) return env.DATABASE_URL;
 
@@ -86,7 +94,7 @@ export function buildConfigFromEnv(env: Record<string, string | undefined>): App
     mock,
 
     mocks: {
-      auth: parseBool(env.MOCK_AUTH, mock || !env.WX_APP_SECRET),
+      auth: parseBool(env.MOCK_AUTH, mock || !hasSecret(env.WX_APP_SECRET)),
       voice: parseBool(env.MOCK_VOICE, mock),
       llm: parseBool(env.MOCK_LLM, mock),
       review: parseBool(env.MOCK_REVIEW, mock),
