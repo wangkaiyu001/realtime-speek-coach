@@ -1,84 +1,118 @@
 # Current online status
 
-Last verified: 2026-07-15 23:18 Asia/Shanghai.
+Last verified: 2026-07-15 23:46 Asia/Shanghai.
 
 ## GitHub sync status
 
-The local `main` branch is synced with GitHub `origin/main` at:
+The local `main` branch was previously synced with GitHub `origin/main` at:
 
 ```text
-1c95806bc92271e7d3a3865caef7216af91f2d57 Publish production container image
+3888828733e2db748a4c73ad2e6e0f52c4987f98 Update current sync and tunnel status
 ```
 
-The latest GitHub Actions runs for this commit completed successfully:
+The latest GitHub Actions runs for that commit completed successfully:
 
 ```text
-CI: success
-Publish Docker image: success
+CI: success, run 29427710672
+Publish Docker image: success, run 29427710546
 ```
 
-The Docker image publish workflow reported this image digest and tags:
+The Docker image publish workflow reported these tags:
 
 ```text
-digest: sha256:0b491b6a06fef243d42be2d761e2d06451e75ce70cea4d74ae1017c25ae27a23
-tags: ghcr.io/wangkaiyu001/realtime-speek-coach:main
-      ghcr.io/wangkaiyu001/realtime-speek-coach:latest
-      ghcr.io/wangkaiyu001/realtime-speek-coach:sha-1c95806
+ghcr.io/wangkaiyu001/realtime-speek-coach:main
+ghcr.io/wangkaiyu001/realtime-speek-coach:latest
+ghcr.io/wangkaiyu001/realtime-speek-coach:sha-3888828
 ```
 
-## Temporary public trial status
-
-The mini program currently points to this temporary Cloudflare quick tunnel:
+The latest published image digest recorded from the workflow is:
 
 ```text
-https://deals-crest-cartridges-instead.trycloudflare.com
+sha256:78b5d56a0353151b2886a90abf9711c21950975cd94de599107e216015ac8b38
+```
+
+This document and the mini program endpoint are being updated after CloudBase
+resource recovery. After the next push, re-check the new GitHub `main` CI and
+image publish runs before treating GitHub as fully synced again.
+
+## Stable CloudBase public trial status
+
+CloudBase account/resource status has recovered. The CloudBase environment is:
+
+```text
+code-realtime-d7gbuxrbze297e600: NORMAL
+```
+
+The stable CloudBase Cloud Run backend is live at:
+
+```text
+https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
 ```
 
 Derived endpoints:
 
 ```text
-API: https://deals-crest-cartridges-instead.trycloudflare.com/api/v1
-WebSocket: wss://deals-crest-cartridges-instead.trycloudflare.com/ws
+API: https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1
+WebSocket: wss://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/ws
 ```
 
-The mini program production endpoint currently points to this origin in
-`packages/miniprogram/config.ts`, so trial/release builds derive the API and
-WebSocket URLs from the tunnel origin.
-
-The local backend behind the tunnel is still healthy on `127.0.0.1:3101`, but
-the public tunnel hostname timed out during the latest check:
+The deployed CloudBase service is:
 
 ```text
-curl --max-time 15 https://deals-crest-cartridges-instead.trycloudflare.com/api/v1/health
--> Connection timed out
+service: echoia-server
+online version: echoia-server-025
+status: normal
+public access: enabled
 ```
 
-Attempts to allocate a replacement account-less Cloudflare quick tunnel also
-timed out against `api.trycloudflare.com`. This means the temporary public trial
-URL should be treated as unavailable until a new quick tunnel is successfully
-created and the mini program endpoint is updated again.
-
-## Verified checks
-
-These checks previously passed against the public tunnel on 2026-07-15 before
-the tunnel became unreachable:
+The public health check passed on 2026-07-15 23:45 Asia/Shanghai:
 
 ```bash
-curl https://deals-crest-cartridges-instead.trycloudflare.com/api/v1/health
-PUBLIC_ORIGIN=https://deals-crest-cartridges-instead.trycloudflare.com npm run verify:public
-API_URL=https://deals-crest-cartridges-instead.trycloudflare.com/api/v1 \
-  WS_URL=wss://deals-crest-cartridges-instead.trycloudflare.com/ws \
-  node scripts/mock-e2e-smoke.mjs
+curl --max-time 20 https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1/health
 ```
 
-`npm run verify:public` is the preferred one-command release gate for any
-public backend origin. It refuses local endpoints by default, checks HTTPS/WSS
-shape, validates `/api/v1/health`, confirms the expected public-trial mock
-flags, and then runs the full mock end-to-end smoke test.
+Response summary:
+
+```json
+{
+  "status": "ok",
+  "mock": true,
+  "mocks": {
+    "auth": true,
+    "voice": true,
+    "llm": true,
+    "review": true
+  },
+  "providers": {
+    "deepseek": true,
+    "gemini": false,
+    "volcVoice": false
+  },
+  "auth": {
+    "mode": "mock",
+    "wechatConfigured": false
+  }
+}
+```
+
+The full public release verifier also passed:
+
+```bash
+PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:public
+```
+
+Result:
+
+```text
+Health check passed
+Smoke test passed: en en-shopping-01
+Public release verification passed.
+```
 
 The service is intentionally running in public-trial mock mode:
 
 ```text
+MOCK=1
 MOCK_AUTH=1
 MOCK_VOICE=1
 MOCK_LLM=1
@@ -88,42 +122,40 @@ MOCK_REVIEW=1
 This allows the end-to-end practice flow to be tested before WeChat login,
 voice, LLM, review, and production database credentials are finalized.
 
-## Important limitation
+## Mini program endpoint
 
-This is a temporary demo endpoint, not a stable production deployment. It stays
-online only while both processes keep running on the local Mac:
+The mini program production endpoint in `packages/miniprogram/config.ts` now
+points to the stable CloudBase origin:
 
-1. the Node backend listening on `127.0.0.1:3101`
-2. the `cloudflared tunnel --url http://127.0.0.1:3101` process
-
-If the Mac sleeps, restarts, loses network, or the tunnel process exits, the
-public URL may stop working. A restarted quick tunnel can also receive a new
-hostname, which requires updating `packages/miniprogram/config.ts` and rebuilding
-the mini program.
-
-## Stable production blocker
-
-The intended CloudBase Cloud Run endpoint is currently blocked by the Tencent
-CloudBase account/resource state, not by application code:
-
-```text
-https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1/health
--> 503 SERVICE_FORBIDDEN: Your server is isolated
+```ts
+const PRODUCTION_SERVER_ORIGIN = 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com';
 ```
 
-CloudBase CLI deployment also fails with:
+Trial/release builds derive the API and WebSocket URLs from that origin.
+
+## Obsolete temporary tunnel
+
+The previous Cloudflare quick tunnel is obsolete and should not be used for
+trial/release builds:
 
 ```text
-[DescribeCloudRunServerDetail] The current resource is isolated.
+https://deals-crest-cartridges-instead.trycloudflare.com
 ```
 
-To make the product production-stable, restore/renew the CloudBase resource pack
-or deploy the Docker image to another long-running container platform that
-supports WebSocket connections. After a stable HTTPS origin is available, update
-`PRODUCTION_SERVER_ORIGIN`, run the quality gates, run the public smoke test, and
-push the new commit.
+It returned Cloudflare 530 / error 1016 during the latest checks. The stable
+CloudBase endpoint above replaces it.
 
-The repository now publishes a ready-to-run Docker image on each `main` push via
-GitHub Actions. See `docs/container-deploy.md` for GHCR image tags and the
-generic deployment path for Railway, Render, Fly.io, ECS, or another stable
-container host while CloudBase is isolated.
+## Remaining production-hardening items
+
+These are not blocking the first public trial because the current deployment is
+explicitly a mock-mode trial backend:
+
+1. Register/file the WeChat mini program and switch `MOCK_AUTH=0` with
+   `WX_APP_ID` and `WX_APP_SECRET`.
+2. Decide which downstream providers should be real in production and switch
+   `MOCK_VOICE`, `MOCK_LLM`, and `MOCK_REVIEW` independently after their own
+   smoke tests pass.
+3. Replace SQLite-on-container storage with durable production persistence for
+   long-term user history.
+4. Set or rotate production secrets only through CloudBase runtime variables,
+   not repository files.
