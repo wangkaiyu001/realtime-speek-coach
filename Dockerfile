@@ -1,6 +1,9 @@
 FROM node:20-alpine AS base
-RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+RUN apk add --no-cache openssl libc6-compat \
+  && corepack enable \
+  && corepack prepare pnpm@8.15.9 --activate
 WORKDIR /app
+ENV PRISMA_GENERATE_SKIP_AUTOINSTALL=1
 
 # Install dependencies
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
@@ -14,15 +17,17 @@ RUN pnpm install --frozen-lockfile || pnpm install
 COPY . .
 
 # Generate Prisma client
-RUN cd packages/server && npx prisma generate
+RUN pnpm --filter @rsc/server db:generate
 
 # Build
 RUN pnpm build
 
 # Production
 FROM node:20-alpine AS production
-RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+RUN apk add --no-cache openssl libc6-compat \
+  && corepack enable \
+  && corepack prepare pnpm@8.15.9 --activate
 WORKDIR /app
 COPY --from=base /app .
-EXPOSE 3000 3001
-CMD ["node", "packages/server/dist/index.js"]
+EXPOSE 3000
+CMD ["sh", "scripts/docker-start.sh"]

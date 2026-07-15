@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Echoia Web 体验版</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Echoia 口语教练</p>
+          <h1>Web 体验版</h1>
+          <p class="subtitle">无需微信开发者工具，直接在浏览器体验：选语言、选场景、语音对练、生成复盘。</p>
+        </div>
+        <div class="status-card">
+          <span id="serverDot" class="dot"></span>
+          <div>
+            <strong id="serverStatus">正在连接线上服务...</strong>
+            <small id="serverMeta">正在检查语音与 AI 服务</small>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section id="languageStep" class="panel step-panel">
+          <div class="section-title">
+            <span>1</span>
+            <div>
+              <h2>选择目标语言</h2>
+              <p>体验版会自动创建一个测试用户；每次进入都可以重新选择语言。</p>
+            </div>
+          </div>
+          <div class="language-grid">
+            <button class="choice-card" data-language="en">
+              <strong>英语 English</strong>
+              <span>咖啡店、旅行、会议、雅思等场景</span>
+            </button>
+            <button class="choice-card" data-language="ja">
+              <strong>日语 Japanese</strong>
+              <span>便利店、问路、面试、JSST 等场景</span>
+            </button>
+          </div>
+        </section>
+
+        <section id="scenarioStep" class="panel step-panel hidden">
+          <div class="section-title">
+            <span>2</span>
+            <div>
+              <h2>选择练习场景</h2>
+              <p id="scenarioHint">请选择一个场景开始。</p>
+            </div>
+          </div>
+          <div id="scenarioGrid" class="scenario-grid"></div>
+        </section>
+
+        <section id="practiceStep" class="panel practice-panel hidden">
+          <div class="practice-header">
+            <div>
+              <p class="eyebrow">当前场景</p>
+              <h2 id="practiceTitle">-</h2>
+              <p id="practiceDesc">-</p>
+            </div>
+            <div class="progress-pill"><span id="turnProgress">0/10</span></div>
+          </div>
+
+          <div id="chat" class="chat"></div>
+
+          <div id="coachVoice" class="coach-voice hidden">
+            <button id="replayCoachVoice" class="secondary" type="button">播放教练语音</button>
+            <span id="coachVoiceHint">如果浏览器没有自动播放，请点击播放。</span>
+          </div>
+
+          <div class="composer">
+            <div class="voice-panel">
+              <button id="voiceAnswer" class="voice-button" disabled>点击开始说话</button>
+              <div>
+                <strong id="voiceTitle">语音输入</strong>
+                <p id="voiceHint">部署真实语音后，会把麦克风音频发送到后端 ASR，并播放后端 TTS 回复；未配置时自动降级为浏览器识别/文本体验。</p>
+              </div>
+            </div>
+            <textarea id="answerInput" rows="3" placeholder="可直接语音作答；如果麦克风不可用，也可以输入文本作为降级体验。" disabled></textarea>
+            <div class="composer-actions">
+              <button id="sendAnswer" class="primary" disabled>发送回答</button>
+              <button id="quickAnswer" class="secondary" disabled>用示例回答</button>
+              <button id="endEarly" class="ghost" disabled>提前结束并复盘</button>
+            </div>
+            <p id="practiceStatus" class="status-text">等待连接...</p>
+          </div>
+        </section>
+
+        <section id="reviewStep" class="panel review-panel hidden">
+          <div class="section-title">
+            <span>3</span>
+            <div>
+              <h2>复盘报告</h2>
+              <p id="reviewSubtitle">正在生成复盘...</p>
+            </div>
+          </div>
+          <div id="reviewContent" class="review-content"></div>
+          <div class="composer-actions">
+            <button id="restart" class="primary">重新体验</button>
+            <button id="backToScenarios" class="secondary">换个场景</button>
+          </div>
+        </section>
+
+        <section id="historyStep" class="panel history-panel hidden">
+          <div class="section-title">
+            <span>H</span>
+            <div>
+              <h2>最近练习</h2>
+              <p>这里会显示本地测试用户的练习记录。</p>
+            </div>
+          </div>
+          <div id="historyList" class="history-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js?v=20260529-voice-2" type="module"></script>
+  </body>
+</html>

@@ -17,6 +17,9 @@ export const SEED_SCENARIOS: Scenario[] = [
     language: 'en',
     systemPrompt: `You are a friendly barista at a coffee shop. Speak naturally, use casual English. Adapt complexity to user level {{level}}. Keep responses under 3 sentences.`,
     openingLine: "Hey! Welcome to Bean & Brew. What can I get started for you today?",
+    minTurns: 2,
+    maxTurns: 5,
+    naturalEndGoal: 'The customer has ordered drinks/food, handled key options such as size, temperature, milk/sugar, payment or takeaway, and has no more requests.',
   },
   {
     id: 'en-business-01',
@@ -29,6 +32,9 @@ export const SEED_SCENARIOS: Scenario[] = [
     language: 'en',
     systemPrompt: `You are a senior engineering manager. Ask follow-up questions about timeline, blockers, and resource needs. Use professional but approachable English. Adapt to user level {{level}}.`,
     openingLine: "Good morning! So, let's dive into your project update. How are things progressing on your end?",
+    minTurns: 4,
+    maxTurns: 8,
+    naturalEndGoal: 'The manager understands progress, blockers, timeline, owners, and next steps clearly enough to end the 1-on-1.',
   },
   {
     id: 'en-travel-01',
@@ -41,6 +47,9 @@ export const SEED_SCENARIOS: Scenario[] = [
     language: 'en',
     systemPrompt: `You are a hotel front desk receptionist. Be helpful and warm. Mention room details, breakfast hours, wifi password. Adapt to user level {{level}}.`,
     openingLine: "Good evening! Welcome to The Grand Harbor Hotel. Do you have a reservation with us?",
+    minTurns: 3,
+    maxTurns: 6,
+    naturalEndGoal: 'The guest has checked in, received key room details, and asked any essential amenity or local-tip questions.',
   },
   {
     id: 'en-ielts-01',
@@ -53,6 +62,9 @@ export const SEED_SCENARIOS: Scenario[] = [
     language: 'en',
     systemPrompt: `You are an IELTS speaking examiner. Give the candidate a Part 2 cue card topic, allow 1 minute prep (simulated), then let them speak for 1-2 minutes. Ask 1-2 follow-up questions. Evaluate band descriptors internally. Adapt to level {{level}}.`,
     openingLine: "Welcome to the speaking test. I'm going to give you a topic. I'd like you to talk about a place you have visited that you found particularly interesting. You should say where it is, when you went there, what you did there, and explain why you found it interesting. Please begin.",
+    minTurns: 4,
+    maxTurns: 8,
+    naturalEndGoal: 'The candidate has completed the long turn and at least one meaningful follow-up question.',
   },
   {
     id: 'en-daily-01',
@@ -65,6 +77,9 @@ export const SEED_SCENARIOS: Scenario[] = [
     language: 'en',
     systemPrompt: `You are a casual friend. Chat naturally about weekend plans - movies, restaurants, sports, staying home. Use slang and contractions appropriate for level {{level}}.`,
     openingLine: "Hey! So what are you up to this weekend? I was thinking we could do something fun.",
+    minTurns: 3,
+    maxTurns: 6,
+    naturalEndGoal: 'Both sides have discussed at least one concrete weekend idea and the conversation has a natural friendly closing.',
   },
 
   // ─── Japanese ──────────────────────────────────────────────
@@ -79,6 +94,9 @@ export const SEED_SCENARIOS: Scenario[] = [
     language: 'ja',
     systemPrompt: `あなたはコンビニの店員です。丁寧な日本語で対応してください。ユーザーのレベル{{level}}に合わせて語彙と文法の複雑さを調整してください。`,
     openingLine: 'いらっしゃいませ！何かお探しですか？',
+    minTurns: 2,
+    maxTurns: 5,
+    naturalEndGoal: 'お客様が商品を選び、支払い・袋・レシートなど必要な確認を終えて、追加の要望がない状態。',
   },
   {
     id: 'ja-business-01',
@@ -91,6 +109,9 @@ export const SEED_SCENARIOS: Scenario[] = [
     language: 'ja',
     systemPrompt: `あなたは日本企業の面接官です。敬語を使い、志望動機や強みについて質問してください。レベル{{level}}に応じて質問の難易度を調整してください。`,
     openingLine: 'それでは、面接を始めさせていただきます。まず、自己紹介をお願いいたします。',
+    minTurns: 4,
+    maxTurns: 8,
+    naturalEndGoal: '自己紹介、志望動機、強み、次の選考に必要な確認が一通り終わった状態。',
   },
   {
     id: 'ja-travel-01',
@@ -103,6 +124,9 @@ export const SEED_SCENARIOS: Scenario[] = [
     language: 'ja',
     systemPrompt: `あなたは親切な東京の住民です。道を聞かれたら、分かりやすく説明してください。レベル{{level}}に合わせてください。`,
     openingLine: 'あ、すみません、何かお困りですか？',
+    minTurns: 2,
+    maxTurns: 5,
+    naturalEndGoal: '目的地、行き方、所要時間、確認質問が自然に解決した状態。',
   },
   {
     id: 'ja-jsst-01',
@@ -115,6 +139,9 @@ export const SEED_SCENARIOS: Scenario[] = [
     language: 'ja',
     systemPrompt: `あなたはJSST試験の面接官です。段階的に質問を出し、受験者の応答力を評価してください。レベル{{level}}に応じた質問をしてください。`,
     openingLine: 'JSSTの模擬テストを始めます。最初の質問です。あなたの趣味について教えてください。',
+    minTurns: 4,
+    maxTurns: 8,
+    naturalEndGoal: '受験者が複数の段階的な質問に答え、評価に十分な発話が得られた状態。',
   },
   {
     id: 'ja-daily-01',
@@ -127,5 +154,8 @@ export const SEED_SCENARIOS: Scenario[] = [
     language: 'ja',
     systemPrompt: `あなたは隣人です。天気について気軽に話してください。レベル{{level}}に合わせた自然な日本語を使ってください。`,
     openingLine: 'おはようございます！今日はいい天気ですね。',
+    minTurns: 2,
+    maxTurns: 5,
+    naturalEndGoal: '天気について自然な短い雑談をして、相手が会話を締めても不自然ではない状態。',
   },
 ];

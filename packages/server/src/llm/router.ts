@@ -18,7 +18,7 @@ export interface StreamChatOptions {
 export function createLlmRouter(config: AppConfig): LlmRouter {
   return {
     async *streamChat(messages: ChatMessage[], opts: StreamChatOptions = {}): AsyncGenerator<string> {
-      if (config.mock) {
+      if (config.mocks.llm) {
         // Mock streaming response
         const mockResponse =
           "I'm doing well, thank you! How can I help you practice your English today? " +
@@ -31,23 +31,49 @@ export function createLlmRouter(config: AppConfig): LlmRouter {
         return;
       }
 
-      // Try DeepSeek V4 Flash first
-      try {
-        yield* streamDeepSeek(config, messages, opts);
-        return;
-      } catch (deepSeekErr) {
-        console.error('[LLM Router] DeepSeek failed, trying Gemini fallback:', deepSeekErr);
+      const providerErrors: string[] = [];
+
+      if (hasConfiguredApiKey(config.deepseek.apiKey)) {
+        try {
+          yield* streamDeepSeek(config, messages, opts);
+          return;
+        } catch (deepSeekErr) {
+          const message = toErrorMessage(deepSeekErr);
+          providerErrors.push(`DeepSeek: ${message}`);
+          console.error('[LLM Router] DeepSeek failed:', deepSeekErr);
+        }
+      } else {
+        providerErrors.push('DeepSeek: DEEPSEEK_API_KEY is not configured');
       }
 
-      // Fallback to Gemini 3.5 Flash
-      try {
-        yield* streamGemini(config, messages, opts);
-      } catch (geminiErr) {
-        console.error('[LLM Router] Gemini also failed:', geminiErr);
-        throw new Error('All LLM providers failed');
+      if (hasConfiguredApiKey(config.gemini.apiKey)) {
+        try {
+          yield* streamGemini(config, messages, opts);
+          return;
+        } catch (geminiErr) {
+          const message = toErrorMessage(geminiErr);
+          providerErrors.push(`Gemini: ${message}`);
+          console.error('[LLM Router] Gemini failed:', geminiErr);
+        }
+      } else {
+        providerErrors.push('Gemini: GEMINI_API_KEY is not configured');
       }
+
+      throw new Error(`All LLM providers failed. ${providerErrors.join('; ')}`);
     },
   };
+}
+
+function toErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function hasConfiguredApiKey(apiKey: string): boolean {
+  return !!apiKey && !apiKey.startsWith('your_');
+}
+
+function trimTrailingSlash(url: string): string {
+  return url.replace(/\/+$/, '');
 }
 
 async function* streamDeepSeek(
@@ -59,7 +85,7 @@ async function* streamDeepSeek(
   const timeout = setTimeout(() => controller.abort(), opts.timeoutMs || 8000);
 
   try {
-    const response = await fetch(`${config.deepseek.baseUrl}/chat/completions`, {
+    const response = await fetch(`${trimTrailingSlash(config.deepseek.baseUrl)}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -118,6 +144,9 @@ async function* streamGemini(
   messages: ChatMessage[],
   opts: StreamChatOptions,
 ): AsyncGenerator<string> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), opts.timeoutMs || 8000);
+
   // Gemini uses a different API format
   // Convert messages to Gemini format
   const contents = messages
@@ -129,54 +158,59 @@ async function* streamGemini(
 
   const systemInstruction = messages.find((m) => m.role === 'system');
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${config.gemini.modelFlash}:streamGenerateContent?alt=sse&key=${config.gemini.apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents,
-        systemInstruction: systemInstruction
-          ? { parts: [{ text: systemInstruction.content }] }
-          : undefined,
-        generationConfig: {
-          temperature: opts.temperature || 0.7,
-          maxOutputTokens: opts.maxTokens || 512,
-        },
-      }),
-    },
-  );
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${config.gemini.modelFlash}:streamGenerateContent?alt=sse&key=${config.gemini.apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents,
+          systemInstruction: systemInstruction
+            ? { parts: [{ text: systemInstruction.content }] }
+            : undefined,
+          generationConfig: {
+            temperature: opts.temperature || 0.7,
+            maxOutputTokens: opts.maxTokens || 512,
+          },
+        }),
+        signal: controller.signal,
+      },
+    );
 
-  if (!response.ok) {
-    throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
-  }
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+    }
 
-  const reader = response.body?.getReader();
-  if (!reader) throw new Error('No response body');
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error('No response body');
 
-  const decoder = new TextDecoder();
-  let buffer = '';
+    const decoder = new TextDecoder();
+    let buffer = '';
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop() || '';
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
 
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || !trimmed.startsWith('data: ')) continue;
-      const data = trimmed.slice(6);
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith('data: ')) continue;
+        const data = trimmed.slice(6);
 
-      try {
-        const json = JSON.parse(data);
-        const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) yield text;
-      } catch {
-        // Skip
+        try {
+          const json = JSON.parse(data);
+          const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) yield text;
+        } catch {
+          // Skip malformed JSON
+        }
       }
     }
+  } finally {
+    clearTimeout(timeout);
   }
 }

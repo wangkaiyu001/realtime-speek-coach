@@ -98,6 +98,13 @@
   font-weight: bold;
 }
 
+.correction-reason {
+  font-size: 28rpx;
+  color: var(--light-text-color);
+  margin-top: 8rpx;
+  line-height: 1.4;
+}
+
 .button-group {
   display: flex;
   gap: 20rpx;

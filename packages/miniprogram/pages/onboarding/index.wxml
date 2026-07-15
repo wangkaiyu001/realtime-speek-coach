@@ -1,36 +1,36 @@
 <!-- pages/onboarding/index.wxml -->
 <view class="container">
   <view class="text-center mt-20 mb-20">
-    <text class="title">Choose Your Language</text>
+    <text class="title">选择练习语言</text>
   </view>
 
   <view class="card">
     <view class="flex-col gap-20">
       <view class="language-card" data-language="en" bindtap="onLanguageChange">
         <view class="flex-row justify-center align-center gap-10">
-          <image src="/images/flags/en.png" class="flag" />
+          <view class="flag">EN</view>
           <text class="language-text">English</text>
-          <radio checked="{{selectedLanguage === 'en'}}" color="#1677ff" />
+          <radio checked="{{isEnglishSelected}}" color="#1677ff" />
         </view>
       </view>
 
       <view class="language-card" data-language="ja" bindtap="onLanguageChange">
         <view class="flex-row justify-center align-center gap-10">
-          <image src="/images/flags/ja.png" class="flag" />
+          <view class="flag">JA</view>
           <text class="language-text">日本語</text>
-          <radio checked="{{selectedLanguage === 'ja'}}" color="#1677ff" />
+          <radio checked="{{isJapaneseSelected}}" color="#1677ff" />
         </view>
       </view>
     </view>
   </view>
 
   <view class="text-center mt-20 text-danger">
-    <text>Note: Language cannot be changed after selection</text>
+    <text>当前版本会先使用你选择的语言开始体验，后续可在设置中切换。</text>
   </view>
 
   <view class="mt-20">
     <button class="button full-width" bindtap="onConfirm" loading="{{isLoading}}">
-      Confirm
+      开始体验
     </button>
   </view>
 </view>

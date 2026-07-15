@@ -24,6 +24,11 @@
   width: 60rpx;
   height: 40rpx;
   border-radius: 8rpx;
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 22rpx;
+  line-height: 40rpx;
+  text-align: center;
 }
 
 .language-text {

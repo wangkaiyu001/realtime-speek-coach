@@ -5,8 +5,16 @@
 export interface AppConfig {
   env: 'development' | 'production' | 'test';
   port: number;
+  host: string;
   wsPort: number;
   mock: boolean;
+
+  mocks: {
+    auth: boolean;
+    voice: boolean;
+    llm: boolean;
+    review: boolean;
+  };
 
   jwt: {
     secret: string;
@@ -33,6 +41,17 @@ export interface AppConfig {
 
   volcVoice: {
     apiKey: string;
+    appKey: string;
+    asrWsUrl: string;
+    asrResourceId: string;
+    ttsWsUrl: string;
+    ttsResourceId: string;
+    ttsVoiceEn: string;
+    ttsVoiceJa: string;
+    ttsModel: string;
+    ttsFormat: 'mp3' | 'ogg_opus' | 'pcm' | 'wav';
+    ttsSampleRate: number;
+    /** Backward-compatible alias. Prefer asrWsUrl/ttsWsUrl for new code. */
     wsUrl: string;
   };
 
@@ -41,13 +60,37 @@ export interface AppConfig {
   };
 }
 
+function parseBool(value: string | undefined, fallback: boolean): boolean {
+  if (value === undefined) return fallback;
+  return value === '1' || value === 'true';
+}
+
+function defaultDatabaseUrl(env: Record<string, string | undefined>): string {
+  if (env.DATABASE_URL) return env.DATABASE_URL;
+
+  // Keep the default stable no matter whether the server is started from the
+  // workspace root, from packages/server, or from built production files.
+  const cwd = env.INIT_CWD || env.PWD || '.';
+  return `file:${cwd.replace(/\/$/, '')}/prisma/dev.db`;
+}
+
 /** Load config from environment variables with defaults */
 export function buildConfigFromEnv(env: Record<string, string | undefined>): AppConfig {
+  const mock = parseBool(env.MOCK, false);
+
   return {
     env: (env.NODE_ENV as AppConfig['env']) || 'development',
     port: parseInt(env.PORT || '3000', 10),
+    host: env.HOST || '127.0.0.1',
     wsPort: parseInt(env.WS_PORT || '3001', 10),
-    mock: env.MOCK === '1' || env.MOCK === 'true',
+    mock,
+
+    mocks: {
+      auth: parseBool(env.MOCK_AUTH, mock || !env.WX_APP_SECRET),
+      voice: parseBool(env.MOCK_VOICE, mock),
+      llm: parseBool(env.MOCK_LLM, mock),
+      review: parseBool(env.MOCK_REVIEW, mock),
+    },
 
     jwt: {
       secret: env.JWT_SECRET || 'dev-secret-change-me',
@@ -74,11 +117,21 @@ export function buildConfigFromEnv(env: Record<string, string | undefined>): App
 
     volcVoice: {
       apiKey: env.VOLC_VOICE_API_KEY || '',
-      wsUrl: env.VOLC_VOICE_WS_URL || 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel',
+      appKey: env.VOLC_VOICE_APP_KEY || '',
+      asrWsUrl: env.VOLC_ASR_WS_URL || env.VOLC_VOICE_WS_URL || 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_nostream',
+      asrResourceId: env.VOLC_ASR_RESOURCE_ID || 'volc.seedasr.sauc.duration',
+      ttsWsUrl: env.VOLC_TTS_WS_URL || 'wss://openspeech.bytedance.com/api/v3/tts/bidirection',
+      ttsResourceId: env.VOLC_TTS_RESOURCE_ID || 'seed-tts-1.0',
+      ttsVoiceEn: env.VOLC_TTS_VOICE_EN || 'en_female_amanda_mars_bigtts',
+      ttsVoiceJa: env.VOLC_TTS_VOICE_JA || 'multi_female_shuangkuaisisi_moon_bigtts',
+      ttsModel: env.VOLC_TTS_MODEL || 'seed-tts-1.1',
+      ttsFormat: (env.VOLC_TTS_FORMAT as AppConfig['volcVoice']['ttsFormat']) || 'mp3',
+      ttsSampleRate: parseInt(env.VOLC_TTS_SAMPLE_RATE || '24000', 10),
+      wsUrl: env.VOLC_VOICE_WS_URL || 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_nostream',
     },
 
     database: {
-      url: env.DATABASE_URL || 'file:../prisma/dev.db',
+      url: defaultDatabaseUrl(env),
     },
   };
 }

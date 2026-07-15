@@ -8,7 +8,7 @@
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "Realtime Speak Coach",
+    "navigationBarTitleText": "Echoia 口语教练",
     "navigationBarTextStyle": "black"
   },
   "sitemapLocation": "sitemap.json"

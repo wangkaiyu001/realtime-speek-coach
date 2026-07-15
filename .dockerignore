@@ -1,0 +1,24 @@
+# Keep the CloudBase/Docker build context small and avoid uploading local state.
+.git
+.github
+node_modules
+.pnpm-store
+dist
+build
+coverage
+.DS_Store
+.env
+.env.local
+.env.*.local
+*.log
+logs
+tmp
+.cache
+prisma/dev.db*
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+packages/miniprogram/dist
+packages/miniprogram/miniprogram_npm
+project.private.config.json

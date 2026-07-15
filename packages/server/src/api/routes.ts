@@ -1,5 +1,13 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { loginHandler, setLanguageHandler, getScenariosHandler, getSessionsHandler, getReviewHandler, healthHandler } from './handlers.js';
+import {
+  loginHandler,
+  setLanguageHandler,
+  getScenariosHandler,
+  getSessionsHandler,
+  getReviewHandler,
+  requestReviewHandler,
+  healthHandler,
+} from './handlers.js';
 import { authHook } from './auth.js';
 
 const apiRoutes: FastifyPluginAsync = async (fastify) => {
@@ -16,6 +24,7 @@ const apiRoutes: FastifyPluginAsync = async (fastify) => {
     protectedScope.get('/scenarios', getScenariosHandler);
     protectedScope.get('/sessions', getSessionsHandler);
     protectedScope.get('/reviews/:sessionId', getReviewHandler);
+    protectedScope.post('/reviews/:sessionId/request', requestReviewHandler);
   });
 };
 

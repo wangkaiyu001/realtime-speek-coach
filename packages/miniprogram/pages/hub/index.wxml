@@ -1,24 +1,54 @@
 <!-- pages/hub/index.wxml -->
 <view class="container">
   <view class="text-center mt-20 mb-20">
-    <text class="title">Choose a Scenario</text>
+    <text class="title">选择练习场景</text>
+    <view class="subtitle">挑一个真实场景，马上开始 10 轮口语对练</view>
+  </view>
+
+  <view class="history-section" wx:if="{{isLoadingSessions || hasRecentSessions}}">
+    <view class="section-header">
+      <text class="section-title">最近练习</text>
+      <text class="section-subtitle">查看复盘，或为提前结束的练习生成局部复盘</text>
+    </view>
+
+    <view wx:if="{{isLoadingSessions}}" class="loading small-loading">正在加载练习记录...</view>
+
+    <scroll-view wx:else scroll-x="true" class="history-scroll">
+      <view class="history-list">
+        <view wx:for="{{recentSessions}}" wx:key="id" class="history-card">
+          <view class="history-title">{{item.scenarioTitle}}</view>
+          <view class="history-meta">{{item.createdAtText}} · 已完成 {{item.progressText}} 轮</view>
+          <view class="history-status">{{item.statusText}}</view>
+          <button
+            class="history-action"
+            bindtap="onSessionActionTap"
+            data-session-id="{{item.id}}"
+            data-scenario-id="{{item.scenarioId}}"
+            data-can-request-review="{{item.canRequestReview}}"
+            data-can-open-review="{{item.canOpenReview}}"
+          >
+            {{item.primaryActionText}}
+          </button>
+        </view>
+      </view>
+    </scroll-view>
   </view>
 
   <view wx:if="{{isLoading}}">
-    <view class="loading">Loading scenarios...</view>
+    <view class="loading">正在加载场景...</view>
   </view>
 
   <view wx:else>
-    <view wx:for="{{categories}}" wx:key="{{index}}">
+    <view wx:for="{{scenarioGroups}}" wx:for-item="group" wx:key="category">
       <view class="category-title">
-        {{category}}
+        {{group.categoryLabel}}
       </view>
 
       <view class="scenarios-grid">
-        <view wx:for="{{scenarios.filter(s => s.category === category)}}" wx:key="{{item.id}}" class="scenario-card" bindtap="onScenarioTap" data-id="{{item.id}}">
-          <view class="scenario-title">{{item.title}}</view>
-          <view class="scenario-description">{{item.description}}</view>
-          <view class="scenario-difficulty">{{item.difficulty}}</view>
+        <view wx:for="{{group.scenarios}}" wx:for-item="scenario" wx:key="id" class="scenario-card" bindtap="onScenarioTap" data-id="{{scenario.id}}">
+          <view class="scenario-title">{{scenario.titleCn || scenario.title}}</view>
+          <view class="scenario-description">{{scenario.descriptionCn || scenario.description}}</view>
+          <view class="scenario-difficulty">难度 {{scenario.difficulty}}/10</view>
         </view>
       </view>
     </view>

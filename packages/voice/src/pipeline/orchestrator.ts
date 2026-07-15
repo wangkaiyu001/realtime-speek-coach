@@ -28,7 +28,7 @@ export function createPipeline(
 ): Pipeline {
   const asrClientFactory = createAsrClient(config);
   const ttsClient = createTtsClient(config);
-  const sentenceBuffer = createSentenceBuffer(handleSentence);
+  let sentenceBuffer = createSentenceBuffer(handleSentence);
 
   let currentTurnIndex = -1;
   let asrClient: ReturnType<typeof asrClientFactory> | null = null;
@@ -117,9 +117,12 @@ export function createPipeline(
       abort();
       abortController = new AbortController();
       currentTurnIndex = turnIndex;
+      sentenceBuffer = createSentenceBuffer(handleSentence);
       asrClient = asrClientFactory({
         onPartial: handleAsrPartial,
         onFinal: handleAsrFinal
+      }, {
+        language: 'en'
       });
       logger.info(`Started turn ${turnIndex}`);
     },
@@ -132,7 +135,7 @@ export function createPipeline(
     },
     endAudio: () => {
       if (asrClient) {
-        asrClient.stop();
+        asrClient.endAudio();
       }
     },
     abort
