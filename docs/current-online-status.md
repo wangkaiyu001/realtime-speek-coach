@@ -1,10 +1,34 @@
 # Current online status
 
-Last verified: 2026-07-15 22:48 Asia/Shanghai.
+Last verified: 2026-07-15 23:18 Asia/Shanghai.
 
-## What is online now
+## GitHub sync status
 
-The MVP backend is reachable through a temporary Cloudflare quick tunnel:
+The local `main` branch is synced with GitHub `origin/main` at:
+
+```text
+1c95806bc92271e7d3a3865caef7216af91f2d57 Publish production container image
+```
+
+The latest GitHub Actions runs for this commit completed successfully:
+
+```text
+CI: success
+Publish Docker image: success
+```
+
+The Docker image publish workflow reported this image digest and tags:
+
+```text
+digest: sha256:0b491b6a06fef243d42be2d761e2d06451e75ce70cea4d74ae1017c25ae27a23
+tags: ghcr.io/wangkaiyu001/realtime-speek-coach:main
+      ghcr.io/wangkaiyu001/realtime-speek-coach:latest
+      ghcr.io/wangkaiyu001/realtime-speek-coach:sha-1c95806
+```
+
+## Temporary public trial status
+
+The mini program currently points to this temporary Cloudflare quick tunnel:
 
 ```text
 https://deals-crest-cartridges-instead.trycloudflare.com
@@ -21,9 +45,23 @@ The mini program production endpoint currently points to this origin in
 `packages/miniprogram/config.ts`, so trial/release builds derive the API and
 WebSocket URLs from the tunnel origin.
 
+The local backend behind the tunnel is still healthy on `127.0.0.1:3101`, but
+the public tunnel hostname timed out during the latest check:
+
+```text
+curl --max-time 15 https://deals-crest-cartridges-instead.trycloudflare.com/api/v1/health
+-> Connection timed out
+```
+
+Attempts to allocate a replacement account-less Cloudflare quick tunnel also
+timed out against `api.trycloudflare.com`. This means the temporary public trial
+URL should be treated as unavailable until a new quick tunnel is successfully
+created and the mini program endpoint is updated again.
+
 ## Verified checks
 
-These checks passed against the public tunnel on 2026-07-15:
+These checks previously passed against the public tunnel on 2026-07-15 before
+the tunnel became unreachable:
 
 ```bash
 curl https://deals-crest-cartridges-instead.trycloudflare.com/api/v1/health
