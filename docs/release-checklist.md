@@ -81,7 +81,7 @@ CLOUDBASE_ENV_ID=<envId> sh scripts/cloudbase-deploy.sh
 
 See `docs/cloudbase-deploy.md` for the full CloudBase MCP/Codex setup, deployment steps, mini program domain configuration, and SQLite persistence notes.
 
-## 4. Mini program endpoint
+## 4. Mini program endpoint and login mode
 
 Before creating a trial/release build, edit:
 
@@ -100,7 +100,14 @@ The mini program will derive:
 - API: `https://<your-domain>/api/v1`
 - WebSocket: `wss://<your-domain>/ws`
 
-For local development, it keeps using `http://localhost:3000` unless `serverOrigin`, `apiUrl`, or `wsUrl` are set in mini program storage.
+Trial/release builds now fail fast if `PRODUCTION_SERVER_ORIGIN` is empty, so they will not accidentally point real users at `localhost`. For preview testing without editing the constant, set mini program storage keys `serverOrigin`, `apiUrl`, or `wsUrl` in DevTools. For local development, the default remains `http://localhost:3000`.
+
+The client uses `wx.login()` in trial/release builds and sends the real WeChat code to `/auth/login`. The server supports both modes:
+
+- `MOCK_AUTH=1`: creates a deterministic mock user for public-trial demos before registration/filing is complete.
+- `MOCK_AUTH=0` with `WX_APP_ID` and `WX_APP_SECRET`: exchanges the code via WeChat `jscode2session` and stores the returned `openid`/`unionid`.
+
+Check `/api/v1/health` before submission. It reports `auth.mode`, `auth.wechatConfigured`, and provider flags so you can confirm the deployed service is using the expected login/provider setup.
 
 ## 5. Smoke validation
 

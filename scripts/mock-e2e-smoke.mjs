@@ -4,7 +4,7 @@ const API_URL = process.env.API_URL || 'http://localhost:3000/api/v1';
 const WS_URL = process.env.WS_URL || 'ws://localhost:3000/ws';
 const LANGUAGE = process.env.SMOKE_LANGUAGE === 'ja' ? 'ja' : 'en';
 const SCENARIO_ID = process.env.SMOKE_SCENARIO_ID || (LANGUAGE === 'ja' ? 'ja-shopping-01' : 'en-shopping-01');
-const TURNS = Number(process.env.SMOKE_TURNS || '10');
+const REQUESTED_TURNS = Number(process.env.SMOKE_TURNS || '0');
 const ABORT_AFTER = Number(process.env.SMOKE_ABORT_AFTER || '0');
 const LOGIN_CODE = process.env.SMOKE_LOGIN_CODE || `smoke-${LANGUAGE}`;
 const REQUIRE_MOCK_LLM = process.env.SMOKE_REQUIRE_MOCK_LLM !== '0';
@@ -41,11 +41,11 @@ async function request(path, options = {}) {
   return body;
 }
 
-function waitFor(socket, predicate, timeoutMs = 15000) {
+function waitFor(socket, predicate, timeoutMs = 15000, label = 'WebSocket frame') {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
       cleanup();
-      reject(new Error('Timed out waiting for WebSocket frame'));
+      reject(new Error(`Timed out waiting for ${label}`));
     }, timeoutMs);
 
     const onMessage = (event) => {
@@ -78,6 +78,70 @@ function waitFor(socket, predicate, timeoutMs = 15000) {
   });
 }
 
+function createFrameQueue(socket) {
+  const buffered = [];
+  const waiters = [];
+
+  function settleWaiter(waiter, frame) {
+    clearTimeout(waiter.timeout);
+    waiter.resolve(frame);
+  }
+
+  function rejectWaiter(waiter, error) {
+    clearTimeout(waiter.timeout);
+    waiter.reject(error instanceof Error ? error : new Error(String(error)));
+  }
+
+  socket.addEventListener('message', (event) => {
+    const frame = JSON.parse(event.data.toString());
+    if (frame.type === 'error') {
+      while (waiters.length) {
+        rejectWaiter(waiters.shift(), new Error(`Server error ${frame.code}: ${frame.message}`));
+      }
+      return;
+    }
+
+    for (let index = 0; index < waiters.length; index++) {
+      const waiter = waiters[index];
+      if (waiter.predicate(frame)) {
+        waiters.splice(index, 1);
+        settleWaiter(waiter, frame);
+        return;
+      }
+    }
+
+    buffered.push(frame);
+  });
+
+  socket.addEventListener('error', (error) => {
+    while (waiters.length) rejectWaiter(waiters.shift(), error);
+  });
+
+  return {
+    waitFor(predicate, timeoutMs = 15000, label = 'WebSocket frame') {
+      const bufferedIndex = buffered.findIndex(predicate);
+      if (bufferedIndex >= 0) {
+        const [frame] = buffered.splice(bufferedIndex, 1);
+        return Promise.resolve(frame);
+      }
+
+      return new Promise((resolve, reject) => {
+        const waiter = {
+          predicate,
+          resolve,
+          reject,
+          timeout: setTimeout(() => {
+            const index = waiters.indexOf(waiter);
+            if (index >= 0) waiters.splice(index, 1);
+            reject(new Error(`Timed out waiting for ${label}`));
+          }, timeoutMs),
+        };
+        waiters.push(waiter);
+      });
+    },
+  };
+}
+
 async function loginAndSelectLanguage(loginCode) {
   const login = await request('/auth/login', {
     method: 'POST',
@@ -96,6 +160,7 @@ async function loginAndSelectLanguage(loginCode) {
 
 async function runPracticeSession(token, { abortAfter = 0, requestReviewOnAbort = false } = {}) {
   const socket = new WebSocket(`${WS_URL}?token=${token}`);
+  const frames = createFrameQueue(socket);
 
   await new Promise((resolve, reject) => {
     socket.addEventListener('open', resolve, { once: true });
@@ -109,37 +174,78 @@ async function runPracticeSession(token, { abortAfter = 0, requestReviewOnAbort 
     language: LANGUAGE,
   }));
 
-  const ready = await waitFor(socket, (frame) => frame.type === 'ready');
+  const ready = await frames.waitFor((frame) => frame.type === 'ready', 15000, 'ready frame');
   assert(ready.sessionId, 'Ready frame did not include a sessionId');
-  await waitFor(socket, (frame) => frame.type === 'tts_chunk' && frame.isLast);
+  await frames.waitFor((frame) => frame.type === 'tts_chunk' && frame.isLast, 15000, 'opening TTS completion');
 
-  const maxTurns = abortAfter > 0 ? abortAfter : TURNS;
+  const totalTurns = Number(ready.totalTurns || REQUESTED_TURNS || 10);
+  const maxTurns = abortAfter > 0 ? abortAfter : (REQUESTED_TURNS > 0 ? Math.min(REQUESTED_TURNS, totalTurns) : totalTurns);
   for (let turnIndex = 1; turnIndex <= maxTurns; turnIndex++) {
     socket.send(JSON.stringify({ type: 'audio_chunk', data: Buffer.alloc(320).toString('base64'), seq: turnIndex }));
     socket.send(JSON.stringify({ type: 'audio_end', turnIndex }));
 
-    await waitFor(socket, (frame) => frame.type === 'asr_final' && frame.turnIndex === turnIndex);
-    const turnEnd = await waitFor(socket, (frame) => frame.type === 'turn_end' && frame.turnIndex === turnIndex, 20000);
+    await frames.waitFor((frame) => frame.type === 'asr_final' && frame.turnIndex === turnIndex, 15000, `ASR final for turn ${turnIndex}`);
+    const turnEnd = await frames.waitFor((frame) => frame.type === 'turn_end' && frame.turnIndex === turnIndex, 20000, `turn_end for turn ${turnIndex}`);
 
     if (abortAfter > 0 && turnIndex === abortAfter) {
       socket.send(JSON.stringify({ type: 'abort', reason: 'user_exit', requestReview: requestReviewOnAbort }));
       let abortEnd;
       if (requestReviewOnAbort) {
-        abortEnd = await waitFor(socket, (frame) => frame.type === 'turn_end' && frame.reviewRequested, 10000);
+        abortEnd = await frames.waitFor((frame) => frame.type === 'turn_end' && frame.reviewRequested, 10000, 'early-end review turn_end');
         assert(abortEnd.sessionComplete === true, 'Early-end review did not complete the session');
       }
-      socket.close(1000, 'smoke abort');
+      if (requestReviewOnAbort) {
+        socket.close(1000, 'smoke abort');
+      }
       return { sessionId: ready.sessionId, socket, abortEnd };
     }
 
-    if (turnIndex < TURNS) {
+    if (turnIndex < totalTurns) {
       assert(turnEnd.sessionComplete === false, `Turn ${turnIndex} completed the session too early`);
     } else {
       assert(turnEnd.sessionComplete === true, 'Final turn did not complete the session');
     }
+
+    if (turnEnd.sessionComplete) {
+      break;
+    }
   }
 
   socket.close(1000, 'smoke complete');
+  return { sessionId: ready.sessionId, socket };
+}
+
+async function runPartialSession(token, completedTurns) {
+  const socket = new WebSocket(`${WS_URL}?token=${token}`);
+  const frames = createFrameQueue(socket);
+
+  await new Promise((resolve, reject) => {
+    socket.addEventListener('open', resolve, { once: true });
+    socket.addEventListener('error', reject, { once: true });
+  });
+
+  socket.send(JSON.stringify({
+    type: 'hello',
+    sessionId: '',
+    scenarioId: SCENARIO_ID,
+    language: LANGUAGE,
+  }));
+
+  const ready = await frames.waitFor((frame) => frame.type === 'ready', 15000, 'partial ready frame');
+  assert(ready.sessionId, 'Ready frame did not include a sessionId');
+  await frames.waitFor((frame) => frame.type === 'tts_chunk' && frame.isLast, 15000, 'partial opening TTS completion');
+
+  for (let turnIndex = 1; turnIndex <= completedTurns; turnIndex++) {
+    socket.send(JSON.stringify({ type: 'audio_chunk', data: Buffer.alloc(320).toString('base64'), seq: turnIndex }));
+    socket.send(JSON.stringify({ type: 'audio_end', turnIndex }));
+
+    await frames.waitFor((frame) => frame.type === 'asr_final' && frame.turnIndex === turnIndex, 15000, `partial ASR final for turn ${turnIndex}`);
+    const turnEnd = await frames.waitFor((frame) => frame.type === 'turn_end' && frame.turnIndex === turnIndex, 20000, `partial turn_end for turn ${turnIndex}`);
+    assert(turnEnd.sessionComplete === false, `Partial session completed too early at turn ${turnIndex}`);
+  }
+
+  socket.close(1000, 'smoke partial');
+
   return { sessionId: ready.sessionId, socket };
 }
 
@@ -186,10 +292,7 @@ async function main() {
 
   if (REVIEW_REQUEST_TURNS > 0) {
     const partialLogin = await loginAndSelectLanguage(`${LOGIN_CODE}-request-review`);
-    const partialSession = await runPracticeSession(partialLogin.token, {
-      abortAfter: REVIEW_REQUEST_TURNS,
-      requestReviewOnAbort: false,
-    });
+    const partialSession = await runPartialSession(partialLogin.token, REVIEW_REQUEST_TURNS);
 
     const partialSessions = await request('/sessions', {
       headers: { Authorization: `Bearer ${partialLogin.token}` },
