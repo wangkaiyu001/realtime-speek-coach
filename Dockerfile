@@ -28,6 +28,16 @@ RUN apk add --no-cache openssl libc6-compat \
   && corepack enable \
   && corepack prepare pnpm@8.15.9 --activate
 WORKDIR /app
+ENV NODE_ENV=production \
+  HOST=0.0.0.0 \
+  PORT=3000 \
+  DATABASE_URL=file:/app/data/dev.db \
+  MOCK=1 \
+  MOCK_AUTH=1 \
+  MOCK_VOICE=1 \
+  MOCK_LLM=1 \
+  MOCK_REVIEW=1 \
+  CORS_ORIGIN=*
 COPY --from=base /app .
 EXPOSE 3000
 CMD ["sh", "scripts/docker-start.sh"]

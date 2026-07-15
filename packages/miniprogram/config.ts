@@ -11,7 +11,7 @@
 // from DevTools before launching the mini program.
 
 const DEVELOPMENT_SERVER_ORIGIN = 'http://localhost:3000';
-const PRODUCTION_SERVER_ORIGIN = '';
+const PRODUCTION_SERVER_ORIGIN = 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com';
 
 export interface EndpointConfig {
   apiUrl: string;

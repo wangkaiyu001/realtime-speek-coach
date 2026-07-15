@@ -30,6 +30,12 @@ MOCK_LLM=1
 MOCK_REVIEW=1
 ```
 
+The production Docker image sets these public-trial defaults as a safety net.
+Cloud Run service variables still override Dockerfile defaults, so set a stable
+`JWT_SECRET` in CloudBase before sharing a long-lived trial build. Without a
+stable secret, the start script generates an ephemeral secret and existing
+sessions expire after container restarts.
+
 To validate Volcengine voice while keeping the rest of the flow stable:
 
 ```bash
@@ -92,13 +98,13 @@ packages/miniprogram/config.ts
 Set:
 
 ```ts
-const PRODUCTION_SERVER_ORIGIN = 'https://<your-domain>';
+const PRODUCTION_SERVER_ORIGIN = 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com';
 ```
 
 The mini program will derive:
 
-- API: `https://<your-domain>/api/v1`
-- WebSocket: `wss://<your-domain>/ws`
+- API: `https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1`
+- WebSocket: `wss://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/ws`
 
 Trial/release builds now fail fast if `PRODUCTION_SERVER_ORIGIN` is empty, so they will not accidentally point real users at `localhost`. For preview testing without editing the constant, set mini program storage keys `serverOrigin`, `apiUrl`, or `wsUrl` in DevTools. For local development, the default remains `http://localhost:3000`.
 

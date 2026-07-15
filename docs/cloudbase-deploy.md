@@ -65,6 +65,13 @@ MOCK_REVIEW=1
 CORS_ORIGIN=*
 ```
 
+The production Docker image also carries the same safe public-trial defaults so
+the container can boot even before console variables are added. Console/service
+variables still take precedence and should be used for persistent production
+secrets. If `JWT_SECRET` is not set, the container start script generates an
+ephemeral secret at boot time; that is acceptable for a short demo, but it will
+invalidate sessions after each restart.
+
 To test real Volcengine voice later while keeping the rest stable:
 
 ```bash
@@ -101,12 +108,22 @@ curl https://<cloudbase-domain>/api/v1/health
 
 The response should include `status: ok` plus the active mock/provider flags.
 
+Current CloudBase trial endpoint used by this repository:
+
+```text
+https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
+```
+
+If this returns `503`, redeploy the service and check Cloud Run logs. A common
+cause is an old container image that was built before the production defaults in
+the Dockerfile were added.
+
 ## 5. Point the mini program to CloudBase
 
 Edit `packages/miniprogram/config.ts`:
 
 ```ts
-const PRODUCTION_SERVER_ORIGIN = 'https://<cloudbase-domain>';
+const PRODUCTION_SERVER_ORIGIN = 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com';
 ```
 
 The mini program derives:
