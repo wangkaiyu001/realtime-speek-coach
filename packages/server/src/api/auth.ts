@@ -1,4 +1,5 @@
-import type { FastifyRequest } from 'fastify';
+import '../env.js';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import jwt from 'jsonwebtoken';
 import { buildConfigFromEnv } from '../../../contracts/src/config.js';
 
@@ -18,16 +19,16 @@ export function verifyJwt(token: string): object | null {
 }
 
 // Auth hook
-export async function authHook(request: FastifyRequest) {
+export async function authHook(request: FastifyRequest, reply: FastifyReply) {
   const authHeader = request.headers.authorization;
-  if (!authHeader) {
-    throw new Error('Authorization header missing');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return reply.status(401).send({ error: 'Authorization header missing' });
   }
 
   const token = authHeader.split(' ')[1];
   const payload = verifyJwt(token);
   if (!payload) {
-    throw new Error('Invalid or expired token');
+    return reply.status(401).send({ error: 'Invalid or expired token' });
   }
 
   request.user = payload as { userId: string };

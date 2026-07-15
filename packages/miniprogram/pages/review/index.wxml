@@ -1,50 +1,50 @@
 <!-- pages/review/index.wxml -->
 <view class="container">
   <view class="text-center mt-20 mb-20">
-    <text class="title">Practice Review</text>
+    <text class="title">练习复盘</text>
   </view>
 
   <view wx:if="{{isLoading}}">
-    <view class="loading">Loading review...</view>
+    <view class="loading">{{loadingMessage}}</view>
   </view>
 
-  <view wx:else>
+  <view wx:elif="{{hasReview}}">
     <view class="card">
       <view class="text-center mb-20">
-        <text class="score">Score: {{review.score}}/100</text>
+        <text class="score">综合得分：{{review.score}}/100</text>
       </view>
 
       <view class="radar-container">
         <view class="radar-item">
-          <text class="radar-label">Pronunciation</text>
+          <text class="radar-label">发音</text>
           <text class="radar-value">{{review.radar.pronunciation}}%</text>
         </view>
         <view class="radar-item">
-          <text class="radar-label">Fluency</text>
+          <text class="radar-label">流利度</text>
           <text class="radar-value">{{review.radar.fluency}}%</text>
         </view>
         <view class="radar-item">
-          <text class="radar-label">Vocabulary</text>
+          <text class="radar-label">词汇</text>
           <text class="radar-value">{{review.radar.vocabulary}}%</text>
         </view>
         <view class="radar-item">
-          <text class="radar-label">Grammar</text>
+          <text class="radar-label">语法</text>
           <text class="radar-value">{{review.radar.grammar}}%</text>
         </view>
         <view class="radar-item">
-          <text class="radar-label">Coherence</text>
+          <text class="radar-label">互动</text>
           <text class="radar-value">{{review.radar.coherence}}%</text>
         </view>
       </view>
     </view>
 
     <view class="card">
-      <text class="section-title">Overall Comment</text>
+      <text class="section-title">整体反馈</text>
       <text class="comment">{{review.comment}}</text>
     </view>
 
     <view class="card">
-      <text class="section-title">Highlights</text>
+      <text class="section-title">做得不错</text>
       <view class="highlights">
         <view wx:for="{{review.highlights}}" wx:key="{{index}}" class="highlight-item">
           <text class="highlight-text">{{item}}</text>
@@ -53,7 +53,7 @@
     </view>
 
     <view class="card">
-      <text class="section-title">Suggestions</text>
+      <text class="section-title">下一步建议</text>
       <view class="suggestions">
         <view wx:for="{{review.suggestions}}" wx:key="{{index}}" class="suggestion-item">
           <text class="suggestion-text">{{item}}</text>
@@ -62,22 +62,30 @@
     </view>
 
     <view class="card">
-      <text class="section-title">Corrections</text>
+      <text class="section-title">表达优化</text>
       <view class="corrections">
         <view wx:for="{{review.corrections}}" wx:key="{{index}}" class="correction-item">
-          <view class="correction-user">You: {{item.user}}</view>
-          <view class="correction-native">Native: {{item.native}}</view>
+          <view class="correction-user">你说：{{item.user}}</view>
+          <view class="correction-native">更自然：{{item.native}}</view>
+          <view class="correction-reason">原因：{{item.reason}}</view>
         </view>
       </view>
     </view>
+  </view>
 
-    <view class="button-group">
-      <button class="button" bindtap="onBackToHub">
-        Back to Hub
-      </button>
-      <button class="button" bindtap="onRetry">
-        Retry
-      </button>
+  <view wx:else>
+    <view class="card text-center">
+      <text class="section-title">练习已结束</text>
+      <text class="comment">{{errorMessage}}</text>
     </view>
+  </view>
+
+  <view class="button-group">
+    <button class="button" bindtap="onBackToHub">
+      返回首页
+    </button>
+    <button class="button" bindtap="onRetry">
+      再练一次
+    </button>
   </view>
 </view>

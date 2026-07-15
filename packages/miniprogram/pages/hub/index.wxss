@@ -3,7 +3,13 @@
 .title {
   font-size: 48rpx;
   font-weight: bold;
-  margin-bottom: 20rpx;
+  margin-bottom: 10rpx;
+}
+
+.subtitle {
+  font-size: 26rpx;
+  color: var(--light-text-color);
+  line-height: 1.5;
 }
 
 .category-title {
@@ -11,6 +17,85 @@
   font-weight: bold;
   margin: 20rpx 0 10rpx 0;
   color: var(--primary-color);
+}
+
+.history-section {
+  margin-bottom: 28rpx;
+}
+
+.section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  margin-bottom: 14rpx;
+}
+
+.section-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+.section-subtitle {
+  font-size: 24rpx;
+  color: var(--light-text-color);
+}
+
+.history-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.history-list {
+  display: inline-flex;
+  gap: 16rpx;
+  padding-bottom: 4rpx;
+}
+
+.history-card {
+  display: inline-flex;
+  flex-direction: column;
+  width: 460rpx;
+  background-color: var(--card-background);
+  border-radius: 16rpx;
+  padding: 22rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  white-space: normal;
+}
+
+.history-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  margin-bottom: 8rpx;
+}
+
+.history-meta {
+  font-size: 24rpx;
+  color: var(--light-text-color);
+  margin-bottom: 10rpx;
+}
+
+.history-status {
+  font-size: 24rpx;
+  color: var(--primary-color);
+  background-color: rgba(22, 119, 255, 0.1);
+  padding: 6rpx 12rpx;
+  border-radius: 999rpx;
+  align-self: flex-start;
+  margin-bottom: 14rpx;
+}
+
+.history-action {
+  width: 100%;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 10rpx;
+  font-size: 26rpx;
+  line-height: 2.4;
+}
+
+.small-loading {
+  padding: 24rpx;
 }
 
 .scenarios-grid {

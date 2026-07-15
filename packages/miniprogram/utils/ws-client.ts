@@ -6,14 +6,27 @@ import { globalData } from '../app';
 /** Frames sent from client to server */
 interface ClientFrame {
   type: string;
-  data?: unknown;
+  [key: string]: unknown;
 }
 
 /** Frames received from server */
-interface ServerFrame {
+export interface ServerFrame {
   type: string;
-  data?: unknown;
+  [key: string]: unknown;
 }
+
+type EventPayloadMap = {
+  ready: ServerFrame;
+  asr_partial: ServerFrame;
+  asr_final: ServerFrame;
+  llm_delta: ServerFrame;
+  tts_chunk: ServerFrame;
+  turn_end: ServerFrame;
+  error: ServerFrame | Error | WechatMiniprogram.GeneralCallbackResult;
+  close: WechatMiniprogram.SocketTaskOnCloseListenerResult;
+  open: undefined;
+  heartbeat_ack: ServerFrame;
+};
 
 interface WsClientOptions {
   url: string;
@@ -22,7 +35,9 @@ interface WsClientOptions {
   heartbeatInterval?: number;
 }
 
-type EventType = 'asr_partial' | 'asr_final' | 'llm_delta' | 'tts_chunk' | 'turn_end' | 'error' | 'close' | 'open';
+type EventType = keyof EventPayloadMap;
+type EventPayload = EventPayloadMap[EventType];
+type EventListener = (data: EventPayload) => void;
 
 class WsClient {
   private url: string;
@@ -32,7 +47,8 @@ class WsClient {
   private maxRetries: number;
   private heartbeatInterval: number;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
-  private eventListeners: Record<EventType, ((data: any) => void)[]> = {
+  private eventListeners: Record<EventType, EventListener[]> = {
+    ready: [],
     asr_partial: [],
     asr_final: [],
     llm_delta: [],
@@ -41,6 +57,7 @@ class WsClient {
     error: [],
     close: [],
     open: [],
+    heartbeat_ack: [],
   };
 
   constructor(options: WsClientOptions) {
@@ -63,7 +80,7 @@ class WsClient {
       console.log('WebSocket connected');
       this.retries = 0;
       this.startHeartbeat();
-      this.emit('open');
+      this.emit('open', undefined);
     });
 
     this.socket.onMessage((res) => {
@@ -71,27 +88,22 @@ class WsClient {
         const raw = typeof res.data === 'string' ? res.data : '';
         const frame = JSON.parse(raw) as ServerFrame;
         switch (frame.type) {
+          case 'ready':
           case 'asr_partial':
-            this.emit('asr_partial', frame.data);
-            break;
           case 'asr_final':
-            this.emit('asr_final', frame.data);
-            break;
           case 'llm_delta':
-            this.emit('llm_delta', frame.data);
-            break;
           case 'tts_chunk':
-            this.emit('tts_chunk', frame.data);
-            break;
           case 'turn_end':
-            this.emit('turn_end', frame.data);
+          case 'error':
+          case 'heartbeat_ack':
+            this.emit(frame.type, frame);
             break;
           default:
             console.warn('Unknown frame type:', frame.type);
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
-        this.emit('error', error);
+        this.emit('error', error instanceof Error ? error : new Error(String(error)));
       }
     });
 
@@ -135,7 +147,7 @@ class WsClient {
     this.stopHeartbeat();
     this.heartbeatTimer = setInterval(() => {
       if (this.socket) {
-        this.send({ type: 'heartbeat', data: Date.now() });
+        this.send({ type: 'heartbeat', ts: Date.now() });
       }
     }, this.heartbeatInterval);
   }
@@ -147,15 +159,15 @@ class WsClient {
     }
   }
 
-  on(event: EventType, listener: (data: any) => void) {
+  on(event: EventType, listener: EventListener) {
     this.eventListeners[event].push(listener);
   }
 
-  off(event: EventType, listener: (data: any) => void) {
+  off(event: EventType, listener: EventListener) {
     this.eventListeners[event] = this.eventListeners[event].filter(l => l !== listener);
   }
 
-  private emit(event: EventType, data?: any) {
+  private emit<T extends EventType>(event: T, data: EventPayloadMap[T]) {
     this.eventListeners[event].forEach(listener => listener(data));
   }
 }

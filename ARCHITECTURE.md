@@ -27,15 +27,15 @@
 
 *   **选型：火山引擎「豆包语音大模型」新版流式 API**
 *   **产品优势：**
-    *   端到端统一模型，ASR + TTS 一体化，无需分别对接两套服务。
-    *   WebSocket 全双工长连接（`wss://openspeech.bytedance.com/api/v3/sauc/bigmodel`），延迟更低。
-    *   原生支持 VAD（静音检测）、情绪感知合成、多语种（英/日/中）。
-    *   单一 API Key 认证，运维更简单。
+    *   ASR 采用豆包流式语音识别模型 2.0 小时版（Resource ID：`volc.seedasr.sauc.duration`）。
+    *   语音识别主链路使用流式输入接口（`wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_nostream`），客户端仍按 PCM 分帧上传，服务端在回合结束时获取更高准确率的最终识别结果。
+    *   TTS 独立使用双向语音合成接口（`wss://openspeech.bytedance.com/api/v3/tts/bidirection`），便于句级断句后实时播放。
+    *   单一火山账号/密钥体系认证，运维更简单。
 
 ### 3.2 交互模式
 
-*   **协议：** WebSocket 全双工流式。
-*   **上行（用户语音 → 文本）：** 小程序通过业务服务器中转，每 100ms 发送 PCM 音频帧至豆包语音 WebSocket。模型内置 VAD，自动判断用户说话结束，返回识别文本。
+*   **协议：** 业务层 WebSocket 承载小程序音频帧；ASR 使用豆包流式输入 WebSocket；TTS 使用双向语音合成 WebSocket。
+*   **上行（用户语音 → 文本）：** 小程序通过业务服务器中转，每 100ms 左右发送 PCM 音频帧至豆包 ASR。当前推荐接口为 `bigmodel_nostream`，即流式输入音频、回合结束后返回高准确率最终识别文本。
 *   **下行（AI 文本 → 语音）：** LLM 输出文本经**句级断句**后，发送给豆包语音合成接口，返回的音频流实时下发给小程序播放。
 
 ### 3.3 句级断句策略（不变）

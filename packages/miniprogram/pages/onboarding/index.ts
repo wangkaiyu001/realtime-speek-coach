@@ -7,6 +7,8 @@ import { setUserLanguage } from '../../utils/api';
 Page({
   data: {
     selectedLanguage: 'en',
+    isEnglishSelected: true,
+    isJapaneseSelected: false,
     isLoading: false,
   },
 
@@ -14,12 +16,21 @@ Page({
     // Check if language is already set
     const language = wx.getStorageSync('language');
     if (language) {
-      this.setData({ selectedLanguage: language });
+      this.updateSelectedLanguage(language);
     }
   },
 
   onLanguageChange(e: WechatMiniprogram.CustomEvent) {
-    this.setData({ selectedLanguage: e.currentTarget.dataset.language });
+    this.updateSelectedLanguage(e.currentTarget.dataset.language);
+  },
+
+  updateSelectedLanguage(language: string) {
+    const selectedLanguage = language === 'ja' ? 'ja' : 'en';
+    this.setData({
+      selectedLanguage,
+      isEnglishSelected: selectedLanguage === 'en',
+      isJapaneseSelected: selectedLanguage === 'ja',
+    });
   },
 
   async onConfirm() {
@@ -31,21 +42,22 @@ Page({
       globalData.language = selectedLanguage;
       wx.setStorageSync('language', selectedLanguage);
 
-      // Mock placement test
+      // Placement will be introduced later. For the first public experience we
+      // start everyone at the entry level so they can enter practice directly.
       wx.showModal({
-        title: 'Placement Test',
-        content: 'This is a mock placement test. Press OK to continue.',
+        title: '准备完成',
+        content: '已为你设置默认入门难度。先开始一次场景对练，完整测评稍后开放。',
         showCancel: false,
         success: () => {
           // Set default level
           globalData.level = 'beginner';
           wx.setStorageSync('level', 'beginner');
-          wx.navigateTo({ url: '/pages/hub/index' });
+          wx.reLaunch({ url: '/pages/hub/index' });
         },
       });
     } catch (error) {
       wx.showToast({
-        title: 'Failed to set language',
+        title: '语言设置失败，请重试',
         icon: 'none',
         duration: 2000,
       });

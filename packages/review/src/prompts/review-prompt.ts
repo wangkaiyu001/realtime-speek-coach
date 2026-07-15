@@ -1,5 +1,3 @@
-import type { ReviewReport, ReviewDimensions, TurnCorrection } from '../../../contracts/src/api.js';
-
 const FEW_SHOT_EXAMPLE = `{
   "dimensions": {
     "pronunciation": 85,

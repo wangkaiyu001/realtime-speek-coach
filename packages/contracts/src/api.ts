@@ -68,6 +68,12 @@ export interface Scenario {
   systemPrompt: string;
   /** Opening line for AI to break the ice */
   openingLine: string;
+  /** Minimum user turns before the AI may naturally wrap up the practice. */
+  minTurns?: number;
+  /** Maximum user turns before the AI must wrap up the practice. */
+  maxTurns?: number;
+  /** Natural task-completion goal used by the AI to decide when to close. */
+  naturalEndGoal?: string;
 }
 
 export type ScenarioCategory =
@@ -92,10 +98,12 @@ export interface SessionSummary {
   id: string;
   scenarioId: string;
   scenarioTitle: string;
+  language: Language;
   turnsCompleted: number;
   totalTurns: number;
   status: 'in_progress' | 'completed' | 'abandoned';
   hasReview: boolean;
+  reviewStatus?: 'pending' | 'processing' | 'completed' | 'failed';
   createdAt: string;
 }
 
@@ -118,7 +126,7 @@ export interface TurnCorrection {
   userSaid: string;
   nativeSay: string;
   correctionReason: string;
-  category: 'pronunciation' | 'grammar' | 'vocabulary' | 'expression';
+  category: 'pronunciation' | 'grammar' | 'vocabulary' | 'fluency' | 'interaction' | 'expression';
 }
 
 export interface ReviewReport {
@@ -138,6 +146,12 @@ export interface ReviewResponse {
   review: ReviewReport;
 }
 
+export interface RequestReviewResponse {
+  accepted: boolean;
+  sessionId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+}
+
 // ─── Health ──────────────────────────────────────────────────
 
 export interface HealthResponse {
@@ -145,4 +159,15 @@ export interface HealthResponse {
   version: string;
   uptime: number;
   mock: boolean;
+  mocks: {
+    auth: boolean;
+    voice: boolean;
+    llm: boolean;
+    review: boolean;
+  };
+  providers?: {
+    deepseek: boolean;
+    gemini: boolean;
+    volcVoice: boolean;
+  };
 }

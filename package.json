@@ -9,6 +9,7 @@
     "build": "pnpm -r build",
     "dev:server": "pnpm --filter @rsc/server dev",
     "dev:voice": "pnpm --filter @rsc/voice dev",
+    "smoke:mock-e2e": "node scripts/mock-e2e-smoke.mjs",
     "prepare": "husky"
   },
   "devDependencies": {

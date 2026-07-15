@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "cloudbase": {
+      "env": {
+        "CLOUDBASE_LOG_DIR": "/Users/bytedance/Documents/Echoia/.cloudbase-mcp/logs"
+      },
+      "command": "node",
+      "args": [
+        "-r",
+        "/Users/bytedance/Documents/Echoia/scripts/cloudbase-mcp-preload.cjs",
+        "/Users/bytedance/.npm/_npx/88d9f76c32260533/node_modules/@cloudbase/cloudbase-mcp/dist/cli.cjs"
+      ],
+      "description": "CloudBase MCP",
+      "lifecycle": "keep-alive"
+    }
+  }
+}

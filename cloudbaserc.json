@@ -1,0 +1,6 @@
+{
+  "envId": "code-realtime-d7gbuxrbze297e600",
+  "cloudrun": {
+    "name": "echoia-server"
+  }
+}

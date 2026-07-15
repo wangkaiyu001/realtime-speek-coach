@@ -37,6 +37,8 @@ export interface WsClientHeartbeat {
 export interface WsClientAbort {
   type: 'abort';
   reason: 'user_exit' | 'error';
+  /** Generate a partial review from the completed turns instead of abandoning. */
+  requestReview?: boolean;
 }
 
 export type WsClientFrame =
@@ -78,6 +80,10 @@ export interface WsServerTtsChunk {
   data: string;
   seq: number;
   isLast: boolean;
+  /** Browser playback MIME type for this synthesized audio stream. */
+  mimeType?: string;
+  /** Audio sample rate when the stream is raw PCM. */
+  sampleRate?: number;
 }
 
 export interface WsServerTurnEnd {
@@ -86,6 +92,8 @@ export interface WsServerTurnEnd {
   totalTurns: number;
   /** When turnIndex === totalTurns, session is complete */
   sessionComplete: boolean;
+  /** True when the user ended early and a partial review was requested. */
+  reviewRequested?: boolean;
 }
 
 export interface WsServerError {
