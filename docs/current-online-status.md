@@ -1,6 +1,6 @@
 # Current online status
 
-Last verified: 2026-07-15 22:35 Asia/Shanghai.
+Last verified: 2026-07-15 22:48 Asia/Shanghai.
 
 ## What is online now
 
@@ -27,10 +27,16 @@ These checks passed against the public tunnel on 2026-07-15:
 
 ```bash
 curl https://deals-crest-cartridges-instead.trycloudflare.com/api/v1/health
+PUBLIC_ORIGIN=https://deals-crest-cartridges-instead.trycloudflare.com npm run verify:public
 API_URL=https://deals-crest-cartridges-instead.trycloudflare.com/api/v1 \
   WS_URL=wss://deals-crest-cartridges-instead.trycloudflare.com/ws \
   node scripts/mock-e2e-smoke.mjs
 ```
+
+`npm run verify:public` is the preferred one-command release gate for any
+public backend origin. It refuses local endpoints by default, checks HTTPS/WSS
+shape, validates `/api/v1/health`, confirms the expected public-trial mock
+flags, and then runs the full mock end-to-end smoke test.
 
 The service is intentionally running in public-trial mock mode:
 

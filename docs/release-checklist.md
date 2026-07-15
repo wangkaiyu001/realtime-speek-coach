@@ -63,9 +63,12 @@ After deployment, verify:
 
 ```bash
 curl https://<your-domain>/api/v1/health
+PUBLIC_ORIGIN=https://<your-domain> npm run verify:public
 ```
 
 The response should include `status: ok` and the active mock/provider flags.
+The `verify:public` script is the preferred single release gate because it also
+checks HTTPS/WSS endpoint shape and runs the full public mock practice smoke.
 
 
 ## 3. CloudBase Cloud Run deployment
@@ -133,6 +136,15 @@ If the server can listen on a port in your environment, also run:
 MOCK=1 MOCK_AUTH=1 MOCK_VOICE=1 MOCK_LLM=1 MOCK_REVIEW=1 pnpm --filter @rsc/server dev
 API_URL=http://localhost:3000/api/v1 WS_URL=ws://localhost:3000/ws node scripts/mock-e2e-smoke.mjs
 ```
+
+For a deployed public endpoint, use the release verification script instead:
+
+```bash
+PUBLIC_ORIGIN=https://<your-domain> npm run verify:public
+```
+
+The script intentionally rejects localhost and non-HTTPS/WSS URLs unless
+`VERIFY_ALLOW_LOCAL=1` is set for local-only development checks.
 
 ## 6. Deferred items
 

@@ -104,9 +104,13 @@ After CloudBase returns the service domain, verify:
 
 ```bash
 curl https://<cloudbase-domain>/api/v1/health
+PUBLIC_ORIGIN=https://<cloudbase-domain> npm run verify:public
 ```
 
 The response should include `status: ok` plus the active mock/provider flags.
+The `verify:public` command additionally derives the WSS endpoint, rejects local
+or non-HTTPS release URLs by default, checks the public-trial mock flags, and
+runs the full mock end-to-end smoke test.
 
 CloudBase trial endpoint intended for stable hosting:
 
@@ -175,6 +179,7 @@ pnpm build
 Optional end-to-end smoke check against a running deployment:
 
 ```bash
+PUBLIC_ORIGIN=https://<cloudbase-domain> npm run verify:public
 API_URL=https://<cloudbase-domain>/api/v1 WS_URL=wss://<cloudbase-domain>/ws node scripts/mock-e2e-smoke.mjs
 ```
 
