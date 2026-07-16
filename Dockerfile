@@ -8,6 +8,7 @@ ENV PRISMA_GENERATE_SKIP_AUTOINSTALL=1
 # Install dependencies
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
 COPY packages/contracts/package.json packages/contracts/
+COPY packages/miniprogram/package.json packages/miniprogram/
 COPY packages/server/package.json packages/server/
 COPY packages/voice/package.json packages/voice/
 COPY packages/review/package.json packages/review/
