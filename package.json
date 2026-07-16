@@ -14,6 +14,7 @@
     "verify:public": "node scripts/verify-public-release.mjs",
     "verify:miniprogram": "node scripts/verify-miniprogram-release.mjs",
     "verify:release": "node scripts/verify-release.mjs",
+    "audit:go-live": "node scripts/go-live-audit.mjs",
     "miniprogram:preview": "node scripts/upload-miniprogram.mjs preview",
     "miniprogram:upload": "node scripts/upload-miniprogram.mjs upload"
   },

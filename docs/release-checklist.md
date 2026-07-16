@@ -137,6 +137,19 @@ Run the full release gate before upload:
 PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:release
 ```
 
+Run the go-live audit whenever resuming release work or before claiming the
+product is ready for wider testing:
+
+```bash
+PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run audit:go-live
+```
+
+This audit aggregates the local Git sync state, public health endpoint, mini
+program production origin, local WeChat upload credentials, GitHub Actions
+secret names, and current provider mode. Warnings are expected while the public
+trial intentionally uses mock providers or before WeChat upload credentials are
+configured, but failures must be fixed before a release handoff.
+
 If a WeChat CI upload private key is available, create a preview QR code or
 upload an experience/release candidate directly from the repository root:
 
