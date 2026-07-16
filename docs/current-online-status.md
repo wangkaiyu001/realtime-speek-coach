@@ -1,13 +1,13 @@
 # Current online status
 
-Last verified: 2026-07-16 14:40 Asia/Shanghai.
+Last verified: 2026-07-16 18:31 Asia/Shanghai.
 
 ## GitHub sync status
 
 The latest verified commit on GitHub `main` is:
 
 ```text
-5256a98551d30087ea303c56acfa80f0ed24cca8 Add deployment readiness checks
+202845b562aa26055a0318b174247e977b928a17 Harden public HTTP endpoints
 ```
 
 At verification time, the local worktree was clean and matched `origin/main` exactly:
@@ -20,8 +20,8 @@ git rev-list --left-right --count origin/main...HEAD: 0 0
 The GitHub Actions runs for the latest commit completed successfully:
 
 ```text
-CI: success, run 29475119503
-Publish Docker image: success, run 29475119496
+CI: success, run 29478480857
+Publish Docker image: success, run 29478480890
 ```
 
 The Docker image publish workflow publishes these tags on each `main` push:
@@ -67,12 +67,12 @@ The deployed CloudBase service is:
 
 ```text
 service: echoia-server
-service update time: 2026-07-16 14:03:28 Asia/Shanghai
+service update time: 2026-07-16 18:15:44 Asia/Shanghai
 status: normal
 public access: enabled
 ```
 
-The public health check passed on 2026-07-16 14:40 Asia/Shanghai during the latest online audit:
+The public health check passed on 2026-07-16 18:31 Asia/Shanghai during the latest online audit:
 
 ```bash
 curl --max-time 20 https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1/health
@@ -104,6 +104,8 @@ Response summary:
 
 The deployed service now exposes `/api/v1/ready`. It verifies database connectivity separately from process liveness and reports `{"status":"ready","database":"connected"}`. The release verifier requires this result before running the end-to-end smoke flow. The server also handles `SIGTERM`/`SIGINT` with graceful Fastify and Prisma shutdown.
 
+The currently deployed HTTP service also sends Helmet security headers, including HSTS, `X-Content-Type-Options: nosniff`, and `X-Frame-Options: SAMEORIGIN`. The login route advertises a per-instance limit of 20 requests per minute through `X-RateLimit-*` headers. Because CloudBase may run multiple container instances, platform-level traffic protection remains necessary for a strict global limit.
+
 The full release verifier also passed during the latest verification:
 
 ```bash
@@ -114,7 +116,8 @@ Result:
 
 ```text
 Health check passed
-Smoke test passed: en en-shopping-01 session cmrmxerf9001bdwrmsmcz1zrm
+Readiness check passed: {"status":"ready","database":"connected"}
+Smoke test passed: en en-shopping-01 session cmrnd9il8000o10z0dyonbaoq
 Public release verification passed.
 Mini program release readiness checks passed.
 Full release verification passed.
