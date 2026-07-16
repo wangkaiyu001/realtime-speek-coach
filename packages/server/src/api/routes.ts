@@ -7,6 +7,7 @@ import {
   getReviewHandler,
   requestReviewHandler,
   healthHandler,
+  readinessHandler,
 } from './handlers.js';
 import { authHook } from './auth.js';
 
@@ -15,6 +16,7 @@ const apiRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.register(async (publicScope) => {
     publicScope.post('/auth/login', loginHandler);
     publicScope.get('/health', healthHandler);
+    publicScope.get('/ready', readinessHandler);
   });
 
   // Protected routes (auth required)

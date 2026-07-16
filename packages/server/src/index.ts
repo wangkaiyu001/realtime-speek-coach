@@ -71,6 +71,32 @@ async function main() {
       gemini: hasConfiguredApiKey(config.gemini.apiKey),
       volcVoice: hasConfiguredApiKey(config.volcVoice.apiKey)
     });
+
+    let shuttingDown = false;
+    const shutdown = async (signal: string) => {
+      if (shuttingDown) return;
+      shuttingDown = true;
+      fastify.log.info({ signal }, 'Graceful shutdown started');
+
+      const forceExit = setTimeout(() => {
+        fastify.log.error('Graceful shutdown timed out');
+        process.exit(1);
+      }, 10000);
+      forceExit.unref();
+
+      try {
+        await fastify.close();
+        await prisma.$disconnect();
+        clearTimeout(forceExit);
+        process.exit(0);
+      } catch (error) {
+        fastify.log.error(error, 'Graceful shutdown failed');
+        process.exit(1);
+      }
+    };
+
+    process.once('SIGTERM', () => void shutdown('SIGTERM'));
+    process.once('SIGINT', () => void shutdown('SIGINT'));
   } catch (err) {
     fastify.log.error(err);
     await prisma.$disconnect();

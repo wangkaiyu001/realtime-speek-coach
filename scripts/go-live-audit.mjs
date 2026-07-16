@@ -99,6 +99,21 @@ async function auditHealth() {
       return body;
     }
     record('public-health', 'pass', JSON.stringify({ status: body.status, mock: body.mock, mocks: body.mocks, auth: body.auth, providers: body.providers }));
+
+    const readinessResponse = await fetch(`${publicOrigin}/api/v1/ready`, { signal: controller.signal });
+    const readinessText = await readinessResponse.text();
+    let readinessBody;
+    try {
+      readinessBody = readinessText ? JSON.parse(readinessText) : {};
+    } catch {
+      record('public-readiness', 'fail', `non-JSON response ${readinessResponse.status}: ${readinessText.slice(0, 200)}`);
+      return body;
+    }
+    if (!readinessResponse.ok || readinessBody.status !== 'ready' || readinessBody.database !== 'connected') {
+      record('public-readiness', 'fail', `HTTP ${readinessResponse.status}: ${JSON.stringify(readinessBody)}`);
+    } else {
+      record('public-readiness', 'pass', JSON.stringify(readinessBody));
+    }
     return body;
   } catch (error) {
     record('public-health', 'fail', error.message || String(error));

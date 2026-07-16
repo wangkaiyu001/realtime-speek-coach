@@ -144,6 +144,12 @@ async function main() {
   assertHealth(health);
   console.log('Health check passed:', JSON.stringify({ status: health.status, mock: health.mock, mocks: health.mocks, auth: health.auth }));
 
+  const readiness = await requestJson(`${apiUrl}/ready`);
+  if (readiness.status !== 'ready' || readiness.database !== 'connected') {
+    fail(`Readiness check failed: ${JSON.stringify(readiness)}`);
+  }
+  console.log('Readiness check passed:', JSON.stringify(readiness));
+
   if (RUN_FULL_SMOKE) {
     await runSmoke(apiUrl, wsUrl);
   } else {

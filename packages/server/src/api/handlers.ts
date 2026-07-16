@@ -432,6 +432,24 @@ async function createMockReviewFromSession(sessionId: string, language: Language
   });
 }
 
+// Readiness check handler. Unlike the liveness endpoint, this verifies that
+// the process can reach its durable state dependency before receiving traffic.
+export async function readinessHandler(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return reply.send({
+      status: 'ready',
+      database: 'connected',
+    });
+  } catch (error) {
+    request.log.error({ err: error }, 'Readiness database check failed');
+    return reply.status(503).send({
+      status: 'not_ready',
+      database: 'unavailable',
+    });
+  }
+}
+
 // Health check handler
 export async function healthHandler(_request: FastifyRequest, reply: FastifyReply) {
   return reply.send({

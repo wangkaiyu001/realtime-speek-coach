@@ -102,6 +102,8 @@ Response summary:
 }
 ```
 
+A dedicated readiness endpoint is included in the next deployment at `/api/v1/ready`. It verifies database connectivity separately from process liveness, and the release verifier will require it before running the end-to-end smoke flow. The server also handles `SIGTERM`/`SIGINT` with graceful Fastify and Prisma shutdown.
+
 The full release verifier also passed during the latest verification:
 
 ```bash

@@ -49,8 +49,7 @@ program at it:
 PUBLIC_ORIGIN=https://<your-domain> npm run verify:public
 ```
 
-This command checks `/api/v1/health`, validates HTTPS/WSS endpoint shape, confirms
-public-trial mock flags, and runs the full mock end-to-end WebSocket flow.
+This command checks `/api/v1/health` and `/api/v1/ready`, validates HTTPS/WSS endpoint shape, confirms public-trial mock flags, verifies database connectivity, and runs the full mock end-to-end WebSocket flow.
 
 ## Mini program switch-over
 

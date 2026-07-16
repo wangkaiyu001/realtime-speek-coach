@@ -107,7 +107,7 @@ curl https://<cloudbase-domain>/api/v1/health
 PUBLIC_ORIGIN=https://<cloudbase-domain> npm run verify:public
 ```
 
-The response should include `status: ok` plus the active mock/provider flags.
+The liveness response should include `status: ok` plus the active mock/provider flags. The readiness endpoint at `/api/v1/ready` additionally verifies database connectivity and must report `status: ready` with `database: connected` before traffic is accepted.
 The `verify:public` command additionally derives the WSS endpoint, rejects local
 or non-HTTPS release URLs by default, checks the public-trial mock flags, and
 runs the full mock end-to-end smoke test.
