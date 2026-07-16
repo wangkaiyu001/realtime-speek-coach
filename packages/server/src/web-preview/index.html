@@ -3,121 +3,146 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Echoia Web 体验版</title>
+    <meta name="theme-color" content="#18231d" />
+    <title>Echoia · AI 口语教练</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="app-shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">Echoia 口语教练</p>
-          <h1>Web 体验版</h1>
-          <p class="subtitle">无需微信开发者工具，直接在浏览器体验：选语言、选场景、语音对练、生成复盘。</p>
-        </div>
-        <div class="status-card">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Echoia 首页">
+          <span class="brand-mark" aria-hidden="true">E</span>
+          <span><strong>Echoia</strong><small>Speak with confidence</small></span>
+        </a>
+        <div class="connection-state" aria-live="polite">
           <span id="serverDot" class="dot"></span>
-          <div>
-            <strong id="serverStatus">正在连接线上服务...</strong>
-            <small id="serverMeta">正在检查语音与 AI 服务</small>
-          </div>
+          <span><strong id="serverStatus">正在准备教室</strong><small id="serverMeta">请稍候</small></span>
         </div>
       </header>
 
       <main>
-        <section id="languageStep" class="panel step-panel">
-          <div class="section-title">
-            <span>1</span>
-            <div>
-              <h2>选择目标语言</h2>
-              <p>体验版会自动创建一个测试用户；每次进入都可以重新选择语言。</p>
-            </div>
+        <section id="languageStep" class="welcome-stage">
+          <div class="welcome-copy">
+            <p class="eyebrow">你的私人 AI 口语教练</p>
+            <h1>别背答案。<br />开口聊起来。</h1>
+            <p class="lead">进入一个真实场景，听老师开场，然后像面对真人一样自然回应。每次只练几分钟。</p>
           </div>
-          <div class="language-grid">
-            <button class="choice-card" data-language="en">
-              <strong>英语 English</strong>
-              <span>咖啡店、旅行、会议、雅思等场景</span>
+          <div class="language-pick" aria-label="选择练习语言">
+            <p>今天想练什么？</p>
+            <button class="language-choice" data-language="en">
+              <span class="language-code">EN</span>
+              <span><strong>English</strong><small>日常、旅行、面试与雅思</small></span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
             </button>
-            <button class="choice-card" data-language="ja">
-              <strong>日语 Japanese</strong>
-              <span>便利店、问路、面试、JSST 等场景</span>
+            <button class="language-choice" data-language="ja">
+              <span class="language-code">JP</span>
+              <span><strong>日本語</strong><small>生活、旅行、职场与 JSST</small></span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
             </button>
           </div>
         </section>
 
-        <section id="scenarioStep" class="panel step-panel hidden">
-          <div class="section-title">
-            <span>2</span>
+        <section id="scenarioStep" class="scenario-stage hidden">
+          <div class="stage-heading">
             <div>
-              <h2>选择练习场景</h2>
-              <p id="scenarioHint">请选择一个场景开始。</p>
+              <p class="eyebrow">Choose a moment</p>
+              <h2>今天，练一场真实对话</h2>
+              <p id="scenarioHint">选择一个你最近可能遇到的场景。</p>
             </div>
+            <button id="changeLanguage" class="text-button" type="button">切换语言</button>
           </div>
           <div id="scenarioGrid" class="scenario-grid"></div>
         </section>
 
-        <section id="practiceStep" class="panel practice-panel hidden">
-          <div class="practice-header">
-            <div>
-              <p class="eyebrow">当前场景</p>
-              <h2 id="practiceTitle">-</h2>
-              <p id="practiceDesc">-</p>
+        <section id="practiceStep" class="lesson-stage hidden">
+          <div class="lesson-topbar">
+            <button id="leaveLesson" class="icon-button" type="button" aria-label="返回场景">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+            </button>
+            <div class="lesson-context">
+              <p id="practiceTitle">场景练习</p>
+              <small id="practiceDesc">准备开始</small>
             </div>
-            <div class="progress-pill"><span id="turnProgress">0/10</span></div>
+            <div class="progress-pill"><span id="turnProgress">准备中</span></div>
           </div>
 
-          <div id="chat" class="chat"></div>
-
-          <div id="coachVoice" class="coach-voice hidden">
-            <button id="replayCoachVoice" class="secondary" type="button">播放教练语音</button>
-            <span id="coachVoiceHint">如果浏览器没有自动播放，请点击播放。</span>
-          </div>
-
-          <div class="composer">
-            <div class="voice-panel">
-              <button id="voiceAnswer" class="voice-button" disabled>点击开始说话</button>
-              <div>
-                <strong id="voiceTitle">语音输入</strong>
-                <p id="voiceHint">部署真实语音后，会把麦克风音频发送到后端 ASR，并播放后端 TTS 回复；未配置时自动降级为浏览器识别/文本体验。</p>
+          <div class="lesson-body">
+            <aside class="coach-stage">
+              <div id="coachPortrait" class="coach-portrait" data-mood="warm">
+                <div class="portrait-halo"></div>
+                <div class="portrait-face"><span>M</span></div>
+                <div id="voiceWaves" class="voice-waves" aria-hidden="true">
+                  <i></i><i></i><i></i><i></i><i></i>
+                </div>
               </div>
+              <div class="coach-identity">
+                <p class="eyebrow">Your coach</p>
+                <h2 id="coachName">Mia</h2>
+                <p id="coachMood">很高兴见到你</p>
+              </div>
+              <button id="replayCoachVoice" class="replay-button" type="button" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Zm4.5 3.5a5 5 0 0 1 0 7M18 6a8 8 0 0 1 0 12" /></svg>
+                再听一次
+              </button>
+            </aside>
+
+            <section class="conversation-stage">
+              <div class="conversation-heading">
+                <div><span id="liveDot" class="live-dot"></span><strong id="conversationState">老师正在准备</strong></div>
+                <button id="toggleTranscript" class="text-button" type="button" aria-expanded="true">隐藏字幕</button>
+              </div>
+              <div id="chat" class="chat" aria-live="polite"></div>
+            </section>
+          </div>
+
+          <div class="speaking-dock">
+            <div class="turn-cue">
+              <strong id="voiceTitle">先听老师说</strong>
+              <p id="voiceHint">老师说完后，麦克风会准备好。</p>
             </div>
-            <textarea id="answerInput" rows="3" placeholder="可直接语音作答；如果麦克风不可用，也可以输入文本作为降级体验。" disabled></textarea>
-            <div class="composer-actions">
-              <button id="sendAnswer" class="primary" disabled>发送回答</button>
-              <button id="quickAnswer" class="secondary" disabled>用示例回答</button>
-              <button id="endEarly" class="ghost" disabled>提前结束并复盘</button>
-            </div>
-            <p id="practiceStatus" class="status-text">等待连接...</p>
+            <button id="voiceAnswer" class="talk-button" type="button" disabled aria-label="开始说话">
+              <span class="talk-rings" aria-hidden="true"></span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8" /></svg>
+              <span id="talkLabel">轮到你时再说</span>
+            </button>
+            <p id="practiceStatus" class="status-text" aria-live="polite">正在进入教室...</p>
+
+            <details id="textFallback" class="text-fallback">
+              <summary>暂时不方便说话？用文字回答</summary>
+              <div class="text-fallback-row">
+                <textarea id="answerInput" rows="2" placeholder="输入一句回答，按 Enter 发送" disabled></textarea>
+                <button id="sendAnswer" class="send-text" type="button" disabled aria-label="发送文字回答">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4 20-7Z" /><path d="M22 2 11 13" /></svg>
+                </button>
+              </div>
+              <button id="quickAnswer" class="sample-button" type="button" disabled>给我一句示范</button>
+            </details>
+            <button id="endEarly" class="end-lesson" type="button" disabled>结束本次练习</button>
           </div>
         </section>
 
-        <section id="reviewStep" class="panel review-panel hidden">
-          <div class="section-title">
-            <span>3</span>
+        <section id="reviewStep" class="review-stage hidden">
+          <div class="stage-heading">
             <div>
-              <h2>复盘报告</h2>
-              <p id="reviewSubtitle">正在生成复盘...</p>
+              <p class="eyebrow">After class</p>
+              <h2>这几分钟，你说得怎么样？</h2>
+              <p id="reviewSubtitle">老师正在整理反馈...</p>
             </div>
           </div>
           <div id="reviewContent" class="review-content"></div>
-          <div class="composer-actions">
-            <button id="restart" class="primary">重新体验</button>
-            <button id="backToScenarios" class="secondary">换个场景</button>
+          <div class="review-actions">
+            <button id="backToScenarios" class="primary-action">再练一个场景</button>
+            <button id="restart" class="secondary-action">重新选择语言</button>
           </div>
         </section>
 
-        <section id="historyStep" class="panel history-panel hidden">
-          <div class="section-title">
-            <span>H</span>
-            <div>
-              <h2>最近练习</h2>
-              <p>这里会显示本地测试用户的练习记录。</p>
-            </div>
-          </div>
+        <section id="historyStep" class="history-stage hidden">
+          <div class="history-heading"><h2>最近练习</h2><p>每一次开口，都算数。</p></div>
           <div id="historyList" class="history-list"></div>
         </section>
       </main>
     </div>
 
-    <script src="./app.js?v=20260529-voice-2" type="module"></script>
+    <script src="./app.js?v=20260716-conversation-1" type="module"></script>
   </body>
 </html>

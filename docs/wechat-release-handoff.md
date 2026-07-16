@@ -127,7 +127,7 @@ endpoint, mini program origin configuration, local WeChat upload credentials,
 GitHub secret names, and whether the deployed backend is still in public-trial
 mock-provider mode. It does not read or print secret values.
 
-For the final upload handoff, also require a real WeChat appid:
+The real WeChat AppID is configured. This command keeps the AppID gate explicit:
 
 ```bash
 WECHAT_APPID=<wx-appid> VERIFY_REQUIRE_WECHAT_APPID=1 PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:miniprogram

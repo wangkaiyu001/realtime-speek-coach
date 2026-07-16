@@ -1,6 +1,6 @@
 {
-  "description": "Echoia WeChat mini program project config. Replace appid before uploading a trial or release build.",
-  "appid": "touristappid",
+  "description": "Echoia WeChat mini program project config.",
+  "appid": "wx37f86133fd3d2de4",
   "compileType": "miniprogram",
   "miniprogramRoot": "./",
   "projectname": "Echoia",

@@ -38,7 +38,7 @@ The current go-live audit reports five passing gates and four expected warnings:
 pass=5, warn=4, fail=0
 ```
 
-The warnings are the real WeChat AppID, WeChat CI private key, matching GitHub secrets, and mocked production providers. They do not block the public mock-mode trial, but they do block a real WeChat experience/release build and production-provider launch.
+The real WeChat AppID `wx37f86133fd3d2de4` is now checked into the mini program project and configured as the GitHub Actions secret `WECHAT_APPID`. The remaining WeChat release blocker is the CI upload private key (`WECHAT_PRIVATE_KEY`), plus legal-domain configuration and real-device validation. Mocked production providers remain a separate production-mode decision.
 
 ## Stable CloudBase public trial status
 
@@ -166,8 +166,7 @@ Run this static mini program gate when only checking DevTools packaging metadata
 npm run verify:miniprogram
 ```
 
-The complete WeChat handoff is in `docs/wechat-release-handoff.md`. For final upload handoff, require the real WeChat appid instead of the checked
-in placeholder:
+The complete WeChat handoff is in `docs/wechat-release-handoff.md`. The real AppID is configured; keep the explicit release check enabled:
 
 ```bash
 WECHAT_APPID=<wx-appid> VERIFY_REQUIRE_WECHAT_APPID=1 npm run verify:miniprogram
@@ -182,8 +181,7 @@ WECHAT_APPID=<wx-appid> WECHAT_PRIVATE_KEY_PATH=/absolute/path/private.<wx-appid
 WECHAT_APPID=<wx-appid> WECHAT_PRIVATE_KEY_PATH=/absolute/path/private.<wx-appid>.key WECHAT_UPLOAD_VERSION=0.1.0 npm run miniprogram:upload
 ```
 
-These commands still require the real appid, upload private key, and WeChat
-console legal-domain configuration before they can complete.
+These commands now have the real AppID available. They still require the upload private key and WeChat console legal-domain configuration before they can complete.
 
 The same upload path is available from GitHub Actions through the manual
 **WeChat mini program release** workflow after adding repository secrets
