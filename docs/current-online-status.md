@@ -1,20 +1,20 @@
 # Current online status
 
-Last verified: 2026-07-16 00:24 Asia/Shanghai.
+Last verified: 2026-07-16 09:31 Asia/Shanghai.
 
 ## GitHub sync status
 
 The last verified application commit on GitHub `main` is:
 
 ```text
-32d6fc227253e2ee436bc152949cc37a7af1003c Point mini program to CloudBase backend
+9457182b64453f64464f6c441f4dd33d9d1c66fa Include mini program package in Docker build
 ```
 
 The GitHub Actions runs for that application commit completed successfully:
 
 ```text
-CI: success, run 29430289702
-Publish Docker image: success, run 29430289378
+CI: success, run 29463856209
+Publish Docker image: success, run 29463856151
 ```
 
 The Docker image publish workflow publishes these tags on each `main` push:
@@ -27,12 +27,7 @@ ghcr.io/wangkaiyu001/realtime-speek-coach:sha-<commit-sha>
 
 For the current repository synchronization state, use `git status --short
 --branch` and `git rev-list --left-right --count origin/main...HEAD`; both
-should report no local/remote divergence before release handoff. After the
-CloudBase recovery documentation refresh, `main` was also verified at:
-
-```text
-3384098cef12a2297eb3346114613c37dbaf4ba7 Refresh CloudBase release status documentation
-```
+should report no local/remote divergence before release handoff.
 
 ## Stable CloudBase public trial status
 
@@ -48,6 +43,8 @@ The stable CloudBase Cloud Run backend is live at:
 https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
 ```
 
+The root web preview is also reachable and serves the `Echoia Web 体验版` page.
+
 Derived endpoints:
 
 ```text
@@ -59,12 +56,12 @@ The deployed CloudBase service is:
 
 ```text
 service: echoia-server
-online version: echoia-server-025
+service update time: 2026-07-16 09:25:42 Asia/Shanghai
 status: normal
 public access: enabled
 ```
 
-The public health check passed on 2026-07-15 23:45 Asia/Shanghai:
+The public health check passed on 2026-07-16 09:31 Asia/Shanghai after the CloudBase redeploy:
 
 ```bash
 curl --max-time 20 https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1/health
@@ -94,7 +91,7 @@ Response summary:
 }
 ```
 
-The full public release verifier also passed:
+The full public release verifier also passed after the CloudBase redeploy:
 
 ```bash
 PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:public
@@ -104,7 +101,7 @@ Result:
 
 ```text
 Health check passed
-Smoke test passed: en en-shopping-01
+Smoke test passed: en en-shopping-01 session cmrmu5v890002dwrmf0u6s9u4
 Public release verification passed.
 ```
 
