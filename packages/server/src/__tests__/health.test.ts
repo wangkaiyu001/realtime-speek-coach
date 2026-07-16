@@ -1,12 +1,12 @@
 import { test, expect, describe, vi } from 'vitest';
 import Fastify from 'fastify';
 import apiRoutes from '../api/routes.js';
+import { buildServer } from '../app.js';
 import { prisma } from '../db/client.js';
 
 describe('Health Endpoint', () => {
-  test('GET /api/v1/health returns 200 with status ok', async () => {
-    const fastify = Fastify();
-    await fastify.register(apiRoutes, { prefix: '/api/v1' });
+  test('GET /api/v1/health returns 200 with status ok and security headers', async () => {
+    const fastify = await buildServer({ logger: false });
 
     const response = await fastify.inject({
       method: 'GET',
@@ -22,6 +22,9 @@ describe('Health Endpoint', () => {
     expect(['mock', 'wechat']).toContain(body.auth.mode);
     expect(typeof body.auth.wechatConfigured).toBe('boolean');
     expect(body.providers).toMatchObject({ deepseek: false, gemini: false, volcVoice: false });
+    expect(response.headers['x-content-type-options']).toBe('nosniff');
+    expect(response.headers['x-frame-options']).toBe('SAMEORIGIN');
+    await fastify.close();
   });
 
   test('GET /api/v1/ready verifies database connectivity', async () => {

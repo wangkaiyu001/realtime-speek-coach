@@ -51,6 +51,8 @@ PUBLIC_ORIGIN=https://<your-domain> npm run verify:public
 
 This command checks `/api/v1/health` and `/api/v1/ready`, validates HTTPS/WSS endpoint shape, confirms public-trial mock flags, verifies database connectivity, and runs the full mock end-to-end WebSocket flow.
 
+The HTTP service also sends Helmet security headers. The public login endpoint is limited to 20 requests per client per minute to reduce credential/code-exchange abuse; CloudBase gateway controls should still be used for broader DDoS and traffic protection.
+
 ## Mini program switch-over
 
 Only after the new public domain passes verification, update

@@ -14,7 +14,11 @@ import { authHook } from './auth.js';
 const apiRoutes: FastifyPluginAsync = async (fastify) => {
   // Public routes (no auth)
   fastify.register(async (publicScope) => {
-    publicScope.post('/auth/login', loginHandler);
+    publicScope.post('/auth/login', {
+      config: {
+        rateLimit: { max: 20, timeWindow: '1 minute' },
+      },
+    }, loginHandler);
     publicScope.get('/health', healthHandler);
     publicScope.get('/ready', readinessHandler);
   });

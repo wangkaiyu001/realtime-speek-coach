@@ -3,6 +3,8 @@ import Fastify from 'fastify';
 import type { FastifyInstance } from 'fastify';
 import fastifyWebsocket from '@fastify/websocket';
 import fastifyCors from '@fastify/cors';
+import fastifyHelmet from '@fastify/helmet';
+import fastifyRateLimit from '@fastify/rate-limit';
 import { buildConfigFromEnv, type AppConfig } from '../../contracts/src/config.js';
 import apiRoutes from './api/routes.js';
 import { websocketHandler } from './ws/handler.js';
@@ -30,9 +32,17 @@ export async function buildServer(options: BuildServerOptions = {}): Promise<Fas
     logger: options.logger ?? true,
   });
 
+  await fastify.register(fastifyHelmet, {
+    contentSecurityPolicy: false,
+  });
   await fastify.register(fastifyCors, {
     origin: buildCorsOrigin(process.env as Record<string, string | undefined>, options.corsOrigin),
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  });
+  await fastify.register(fastifyRateLimit, {
+    global: false,
+    max: 120,
+    timeWindow: '1 minute',
   });
   await fastify.register(fastifyWebsocket);
 
