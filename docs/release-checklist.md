@@ -137,6 +137,28 @@ Run the full release gate before upload:
 PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:release
 ```
 
+If a WeChat CI upload private key is available, create a preview QR code or
+upload an experience/release candidate directly from the repository root:
+
+```bash
+WECHAT_APPID=<wx-appid> \
+WECHAT_PRIVATE_KEY_PATH=/absolute/path/private.<wx-appid>.key \
+WECHAT_UPLOAD_DESC="Echoia MVP public trial preview" \
+PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com \
+npm run miniprogram:preview
+
+WECHAT_APPID=<wx-appid> \
+WECHAT_PRIVATE_KEY_PATH=/absolute/path/private.<wx-appid>.key \
+WECHAT_UPLOAD_VERSION=0.1.0 \
+WECHAT_UPLOAD_DESC="Echoia MVP public trial" \
+PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com \
+npm run miniprogram:upload
+```
+
+The private key must stay outside the repository. The upload scripts also accept
+`WECHAT_PRIVATE_KEY` for CI secret storage and run the mini program release gate
+before contacting WeChat.
+
 Run the static mini program release gate independently when you only need to check DevTools packaging metadata:
 
 ```bash

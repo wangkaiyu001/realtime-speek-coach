@@ -159,6 +159,18 @@ in placeholder:
 WECHAT_APPID=<wx-appid> VERIFY_REQUIRE_WECHAT_APPID=1 npm run verify:miniprogram
 ```
 
+When the WeChat CI private key is available, the repository can generate a
+preview QR code or upload an experience/release candidate without manual
+DevTools import:
+
+```bash
+WECHAT_APPID=<wx-appid> WECHAT_PRIVATE_KEY_PATH=/absolute/path/private.<wx-appid>.key npm run miniprogram:preview
+WECHAT_APPID=<wx-appid> WECHAT_PRIVATE_KEY_PATH=/absolute/path/private.<wx-appid>.key WECHAT_UPLOAD_VERSION=0.1.0 npm run miniprogram:upload
+```
+
+These commands still require the real appid, upload private key, and WeChat
+console legal-domain configuration before they can complete.
+
 ## Obsolete temporary tunnel
 
 The previous Cloudflare quick tunnel is obsolete and should not be used for

@@ -13,13 +13,16 @@
     "prepare": "husky",
     "verify:public": "node scripts/verify-public-release.mjs",
     "verify:miniprogram": "node scripts/verify-miniprogram-release.mjs",
-    "verify:release": "node scripts/verify-release.mjs"
+    "verify:release": "node scripts/verify-release.mjs",
+    "miniprogram:preview": "node scripts/upload-miniprogram.mjs preview",
+    "miniprogram:upload": "node scripts/upload-miniprogram.mjs upload"
   },
   "devDependencies": {
     "@prisma/client": "5",
     "@types/node": "^22.0.0",
     "eslint": "^9.0.0",
     "husky": "^9.0.0",
+    "miniprogram-ci": "^2.1.31",
     "prettier": "^3.4.0",
     "prisma": "5",
     "typescript": "^5.7.0",

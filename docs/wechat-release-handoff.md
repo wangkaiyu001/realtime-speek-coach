@@ -25,6 +25,49 @@ socket legal domain:  echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
 
 Do not use the obsolete Cloudflare quick tunnel for trial or release builds.
 
+## CI upload or preview
+
+The repository includes a `miniprogram-ci` wrapper so the final experience build
+can be uploaded without opening WeChat DevTools, as long as the mini program CI
+private key has been generated in the WeChat console.
+
+Before running the upload, configure the legal domains above and keep the upload
+private key outside the repository. The repo ignores `*.key`, `*.pem`, and
+`project.private.config.json`; do not commit those files.
+
+Create an experience-version preview QR code:
+
+```bash
+WECHAT_APPID=<wx-appid> \
+WECHAT_PRIVATE_KEY_PATH=/absolute/path/private.<wx-appid>.key \
+WECHAT_UPLOAD_DESC="Echoia MVP public trial preview" \
+PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com \
+npm run miniprogram:preview
+```
+
+Upload an experience/release candidate version:
+
+```bash
+WECHAT_APPID=<wx-appid> \
+WECHAT_PRIVATE_KEY_PATH=/absolute/path/private.<wx-appid>.key \
+WECHAT_UPLOAD_VERSION=0.1.0 \
+WECHAT_UPLOAD_DESC="Echoia MVP public trial" \
+PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com \
+npm run miniprogram:upload
+```
+
+If CI can only provide the private key as an environment variable, set
+`WECHAT_PRIVATE_KEY` instead of `WECHAT_PRIVATE_KEY_PATH`. Use literal newlines
+or escaped `\n` line breaks. Optional variables:
+
+- `WECHAT_ROBOT`: WeChat upload robot number, default `1`.
+- `WECHAT_QR_OUTPUT`: preview QR image output path, default
+  `tmp/wechat-preview-qrcode.jpg`.
+
+Both scripts run the mini program release gate first with
+`VERIFY_REQUIRE_WECHAT_APPID=1`, so uploads stop before contacting WeChat if the
+checked-in appid is still only a placeholder or the release endpoint is wrong.
+
 ## DevTools import and upload
 
 1. Open WeChat DevTools.
@@ -46,6 +89,9 @@ Do not use the obsolete Cloudflare quick tunnel for trial or release builds.
    - complete or end a practice session
    - open the review page
 6. Submit for review/release after the real-device experience version passes.
+
+DevTools remains a valid manual fallback when the CI private key is not yet
+available.
 
 ## Verification gates before upload
 
