@@ -1,13 +1,13 @@
 # Current online status
 
-Last verified: 2026-07-16 12:47 Asia/Shanghai.
+Last verified: 2026-07-16 14:40 Asia/Shanghai.
 
 ## GitHub sync status
 
 The latest verified commit on GitHub `main` is:
 
 ```text
-ef3b6e43442c938dd6eb830db453ce778c8cbf8d Add go-live audit script
+5256a98551d30087ea303c56acfa80f0ed24cca8 Add deployment readiness checks
 ```
 
 At verification time, the local worktree was clean and matched `origin/main` exactly:
@@ -20,8 +20,8 @@ git rev-list --left-right --count origin/main...HEAD: 0 0
 The GitHub Actions runs for the latest commit completed successfully:
 
 ```text
-CI: success, run 29471129823
-Publish Docker image: success, run 29471129801
+CI: success, run 29475119503
+Publish Docker image: success, run 29475119496
 ```
 
 The Docker image publish workflow publishes these tags on each `main` push:
@@ -32,10 +32,10 @@ ghcr.io/wangkaiyu001/realtime-speek-coach:latest
 ghcr.io/wangkaiyu001/realtime-speek-coach:sha-<commit-sha>
 ```
 
-The current go-live audit reports four passing gates and four expected warnings:
+The current go-live audit reports five passing gates and four expected warnings:
 
 ```text
-pass=4, warn=4, fail=0
+pass=5, warn=4, fail=0
 ```
 
 The warnings are the real WeChat AppID, WeChat CI private key, matching GitHub secrets, and mocked production providers. They do not block the public mock-mode trial, but they do block a real WeChat experience/release build and production-provider launch.
@@ -67,12 +67,12 @@ The deployed CloudBase service is:
 
 ```text
 service: echoia-server
-service update time: 2026-07-16 09:25:42 Asia/Shanghai
+service update time: 2026-07-16 14:03:28 Asia/Shanghai
 status: normal
 public access: enabled
 ```
 
-The public health check passed on 2026-07-16 12:47 Asia/Shanghai during the latest online audit:
+The public health check passed on 2026-07-16 14:40 Asia/Shanghai during the latest online audit:
 
 ```bash
 curl --max-time 20 https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1/health
@@ -102,7 +102,7 @@ Response summary:
 }
 ```
 
-A dedicated readiness endpoint is included in the next deployment at `/api/v1/ready`. It verifies database connectivity separately from process liveness, and the release verifier will require it before running the end-to-end smoke flow. The server also handles `SIGTERM`/`SIGINT` with graceful Fastify and Prisma shutdown.
+The deployed service now exposes `/api/v1/ready`. It verifies database connectivity separately from process liveness and reports `{"status":"ready","database":"connected"}`. The release verifier requires this result before running the end-to-end smoke flow. The server also handles `SIGTERM`/`SIGINT` with graceful Fastify and Prisma shutdown.
 
 The full release verifier also passed during the latest verification:
 
