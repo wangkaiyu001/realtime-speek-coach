@@ -1,20 +1,20 @@
 # Current online status
 
-Last verified: 2026-07-16 10:00 Asia/Shanghai.
+Last verified: 2026-07-16 11:05 Asia/Shanghai.
 
 ## GitHub sync status
 
 The last verified application commit on GitHub `main` is:
 
 ```text
-9457182b64453f64464f6c441f4dd33d9d1c66fa Include mini program package in Docker build
+04fb0eb32f3c20f11a3736d5e108c797d2b5723b Add full release verification handoff
 ```
 
 The GitHub Actions runs for that application commit completed successfully:
 
 ```text
-CI: success, run 29463856209
-Publish Docker image: success, run 29463856151
+CI: success, run 29467831797
+Publish Docker image: success, run 29467831791
 ```
 
 The Docker image publish workflow publishes these tags on each `main` push:
@@ -61,7 +61,7 @@ status: normal
 public access: enabled
 ```
 
-The public health check passed on 2026-07-16 09:31 Asia/Shanghai after the CloudBase redeploy:
+The public health check passed on 2026-07-16 11:05 Asia/Shanghai during the latest release verification:
 
 ```bash
 curl --max-time 20 https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1/health
@@ -91,7 +91,7 @@ Response summary:
 }
 ```
 
-The full release verifier also passed after the CloudBase redeploy:
+The full release verifier also passed during the latest verification:
 
 ```bash
 PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:release
@@ -101,7 +101,7 @@ Result:
 
 ```text
 Health check passed
-Smoke test passed: en en-shopping-01 session cmrmx2v8d000wdwrmuujcfyux
+Smoke test passed: en en-shopping-01 session cmrmxerf9001bdwrmsmcz1zrm
 Public release verification passed.
 Mini program release readiness checks passed.
 Full release verification passed.
