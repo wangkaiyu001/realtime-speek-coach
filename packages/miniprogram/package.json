@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "echo 'miniprogram build placeholder'",
-    "test": "echo 'miniprogram tests placeholder'"
+    "build": "tsc --noEmit && node ../../scripts/verify-miniprogram-release.mjs",
+    "test": "echo 'miniprogram tests placeholder'",
+    "verify:release": "node ../../scripts/verify-miniprogram-release.mjs"
   },
   "devDependencies": {
     "miniprogram-api-typings": "^3.12.0",

@@ -1,6 +1,6 @@
 # Current online status
 
-Last verified: 2026-07-16 00:01 Asia/Shanghai.
+Last verified: 2026-07-16 00:24 Asia/Shanghai.
 
 ## GitHub sync status
 
@@ -27,7 +27,12 @@ ghcr.io/wangkaiyu001/realtime-speek-coach:sha-<commit-sha>
 
 For the current repository synchronization state, use `git status --short
 --branch` and `git rev-list --left-right --count origin/main...HEAD`; both
-should report no local/remote divergence before release handoff.
+should report no local/remote divergence before release handoff. After the
+CloudBase recovery documentation refresh, `main` was also verified at:
+
+```text
+3384098cef12a2297eb3346114613c37dbaf4ba7 Refresh CloudBase release status documentation
+```
 
 ## Stable CloudBase public trial status
 
@@ -126,6 +131,26 @@ const PRODUCTION_SERVER_ORIGIN = 'https://echoia-server-263603-8-1419519222.sh.r
 ```
 
 Trial/release builds derive the API and WebSocket URLs from that origin.
+
+The repository also includes the static files needed for WeChat DevTools import
+and release checks:
+
+- `packages/miniprogram/project.config.json`
+- `packages/miniprogram/sitemap.json`
+- `scripts/verify-miniprogram-release.mjs`
+
+Run this gate before uploading a trial/release build:
+
+```bash
+npm run verify:miniprogram
+```
+
+For final upload handoff, require the real WeChat appid instead of the checked
+in placeholder:
+
+```bash
+WECHAT_APPID=<wx-appid> VERIFY_REQUIRE_WECHAT_APPID=1 npm run verify:miniprogram
+```
 
 ## Obsolete temporary tunnel
 

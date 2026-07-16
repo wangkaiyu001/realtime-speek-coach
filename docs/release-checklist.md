@@ -125,6 +125,29 @@ The client uses `wx.login()` in trial/release builds and sends the real WeChat c
 
 Check `/api/v1/health` before submission. It reports `auth.mode`, `auth.wechatConfigured`, and provider flags so you can confirm the deployed service is using the expected login/provider setup.
 
+The repository now includes the WeChat DevTools project metadata needed to
+import the mini program from `packages/miniprogram`. Before uploading an
+experience or release build, replace the placeholder `appid` in
+`packages/miniprogram/project.config.json` with the real mini program appid,
+or provide it through the local DevTools project configuration.
+
+Run the static mini program release gate before upload:
+
+```bash
+npm run verify:miniprogram
+```
+
+For the final upload handoff, require a real appid as well:
+
+```bash
+WECHAT_APPID=<wx-appid> VERIFY_REQUIRE_WECHAT_APPID=1 npm run verify:miniprogram
+```
+
+This check verifies that all pages listed in `app.json` exist, the referenced
+`sitemap.json` exists, the DevTools project config is present, and the
+trial/release endpoint is a stable HTTPS backend rather than localhost or a
+temporary tunnel.
+
 ## 5. Smoke validation
 
 Run the no-port unit/integration suite first:
