@@ -28,7 +28,8 @@
     "prisma": "5",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.64.0",
-    "vitest": "^3.0.0"
+    "vitest": "^3.0.0",
+    "ws": "8.18.3"
   },
   "engines": {
     "node": ">=20.0.0",

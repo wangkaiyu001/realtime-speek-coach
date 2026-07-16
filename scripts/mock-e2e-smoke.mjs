@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import WebSocket from 'ws';
+
 const API_URL = process.env.API_URL || 'http://localhost:3000/api/v1';
 const WS_URL = process.env.WS_URL || 'ws://localhost:3000/ws';
 const LANGUAGE = process.env.SMOKE_LANGUAGE === 'ja' ? 'ja' : 'en';
