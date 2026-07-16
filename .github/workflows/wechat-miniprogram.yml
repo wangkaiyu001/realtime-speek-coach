@@ -1,0 +1,75 @@
+name: WeChat mini program release
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Create preview QR code or upload a version'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - upload
+      version:
+        description: 'Version for upload action, for example 0.1.0'
+        required: false
+        default: '0.1.0'
+      description:
+        description: 'Upload/preview description shown in WeChat'
+        required: false
+        default: 'Echoia MVP public trial'
+      robot:
+        description: 'WeChat CI robot number, 1-30'
+        required: false
+        default: '1'
+      public_origin:
+        description: 'Public CloudBase origin used by release verification'
+        required: false
+        default: 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com'
+
+permissions:
+  contents: read
+
+env:
+  PUBLIC_ORIGIN: ${{ inputs.public_origin }}
+  WECHAT_APPID: ${{ secrets.WECHAT_APPID }}
+  WECHAT_PRIVATE_KEY: ${{ secrets.WECHAT_PRIVATE_KEY }}
+  WECHAT_UPLOAD_VERSION: ${{ inputs.version }}
+  WECHAT_UPLOAD_DESC: ${{ inputs.description }}
+  WECHAT_ROBOT: ${{ inputs.robot }}
+  WECHAT_QR_OUTPUT: tmp/wechat-preview-qrcode.jpg
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Validate required secrets
+        run: |
+          test -n "$WECHAT_APPID" || { echo 'Missing repository secret WECHAT_APPID'; exit 1; }
+          test -n "$WECHAT_PRIVATE_KEY" || { echo 'Missing repository secret WECHAT_PRIVATE_KEY'; exit 1; }
+
+      - name: Full release verification
+        run: pnpm verify:release
+
+      - name: Run WeChat mini program ${{ inputs.action }}
+        run: pnpm miniprogram:${{ inputs.action }}
+
+      - name: Upload preview QR artifact
+        if: ${{ inputs.action == 'preview' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: wechat-preview-qrcode
+          path: tmp/wechat-preview-qrcode.jpg
+          if-no-files-found: error

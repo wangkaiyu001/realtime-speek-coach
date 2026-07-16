@@ -68,6 +68,20 @@ Both scripts run the mini program release gate first with
 `VERIFY_REQUIRE_WECHAT_APPID=1`, so uploads stop before contacting WeChat if the
 checked-in appid is still only a placeholder or the release endpoint is wrong.
 
+### GitHub Actions upload path
+
+For remote handoff, configure these repository secrets in GitHub Actions:
+
+- `WECHAT_APPID`: the real mini program appid.
+- `WECHAT_PRIVATE_KEY`: the WeChat CI upload private key. Store the full PEM
+  text; escaped `\n` line breaks are also accepted by the upload script.
+
+Then run the **WeChat mini program release** workflow manually from GitHub. Use
+`preview` to generate a QR-code artifact named `wechat-preview-qrcode`, or
+`upload` to upload the version to the WeChat mini program console. The workflow
+runs `pnpm verify:release` before calling WeChat, so the public CloudBase origin
+and mini program release metadata are checked on every remote upload attempt.
+
 ## DevTools import and upload
 
 1. Open WeChat DevTools.

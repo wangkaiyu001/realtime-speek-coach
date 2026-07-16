@@ -159,6 +159,12 @@ The private key must stay outside the repository. The upload scripts also accept
 `WECHAT_PRIVATE_KEY` for CI secret storage and run the mini program release gate
 before contacting WeChat.
 
+For a fully remote upload path, add GitHub repository secrets `WECHAT_APPID` and
+`WECHAT_PRIVATE_KEY`, then manually run the **WeChat mini program release**
+workflow. Choose `preview` to create a QR-code artifact for real-device testing,
+or `upload` to upload the selected version to the WeChat console. This workflow
+also runs the full release gate first.
+
 Run the static mini program release gate independently when you only need to check DevTools packaging metadata:
 
 ```bash

@@ -171,6 +171,12 @@ WECHAT_APPID=<wx-appid> WECHAT_PRIVATE_KEY_PATH=/absolute/path/private.<wx-appid
 These commands still require the real appid, upload private key, and WeChat
 console legal-domain configuration before they can complete.
 
+The same upload path is available from GitHub Actions through the manual
+**WeChat mini program release** workflow after adding repository secrets
+`WECHAT_APPID` and `WECHAT_PRIVATE_KEY`. Use its `preview` action to create a QR
+artifact for real-device testing, then `upload` when the experience build is
+ready for the WeChat console.
+
 ## Obsolete temporary tunnel
 
 The previous Cloudflare quick tunnel is obsolete and should not be used for
