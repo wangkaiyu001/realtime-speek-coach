@@ -131,7 +131,13 @@ experience or release build, replace the placeholder `appid` in
 `packages/miniprogram/project.config.json` with the real mini program appid,
 or provide it through the local DevTools project configuration.
 
-Run the static mini program release gate before upload:
+Run the full release gate before upload:
+
+```bash
+PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:release
+```
+
+Run the static mini program release gate independently when you only need to check DevTools packaging metadata:
 
 ```bash
 npm run verify:miniprogram
@@ -146,7 +152,8 @@ WECHAT_APPID=<wx-appid> VERIFY_REQUIRE_WECHAT_APPID=1 npm run verify:miniprogram
 This check verifies that all pages listed in `app.json` exist, the referenced
 `sitemap.json` exists, the DevTools project config is present, and the
 trial/release endpoint is a stable HTTPS backend rather than localhost or a
-temporary tunnel.
+temporary tunnel. See `docs/wechat-release-handoff.md` for the exact WeChat
+console legal-domain and DevTools upload handoff steps.
 
 ## 5. Smoke validation
 

@@ -12,7 +12,8 @@
     "smoke:mock-e2e": "node scripts/mock-e2e-smoke.mjs",
     "prepare": "husky",
     "verify:public": "node scripts/verify-public-release.mjs",
-    "verify:miniprogram": "node scripts/verify-miniprogram-release.mjs"
+    "verify:miniprogram": "node scripts/verify-miniprogram-release.mjs",
+    "verify:release": "node scripts/verify-release.mjs"
   },
   "devDependencies": {
     "@prisma/client": "5",

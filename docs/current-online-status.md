@@ -1,6 +1,6 @@
 # Current online status
 
-Last verified: 2026-07-16 09:31 Asia/Shanghai.
+Last verified: 2026-07-16 10:00 Asia/Shanghai.
 
 ## GitHub sync status
 
@@ -91,18 +91,20 @@ Response summary:
 }
 ```
 
-The full public release verifier also passed after the CloudBase redeploy:
+The full release verifier also passed after the CloudBase redeploy:
 
 ```bash
-PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:public
+PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:release
 ```
 
 Result:
 
 ```text
 Health check passed
-Smoke test passed: en en-shopping-01 session cmrmu5v890002dwrmf0u6s9u4
+Smoke test passed: en en-shopping-01 session cmrmx2v8d000wdwrmuujcfyux
 Public release verification passed.
+Mini program release readiness checks passed.
+Full release verification passed.
 ```
 
 The service is intentionally running in public-trial mock mode:
@@ -136,13 +138,19 @@ and release checks:
 - `packages/miniprogram/sitemap.json`
 - `scripts/verify-miniprogram-release.mjs`
 
-Run this gate before uploading a trial/release build:
+Run this full release gate before uploading a trial/release build:
+
+```bash
+PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:release
+```
+
+Run this static mini program gate when only checking DevTools packaging metadata:
 
 ```bash
 npm run verify:miniprogram
 ```
 
-For final upload handoff, require the real WeChat appid instead of the checked
+The complete WeChat handoff is in `docs/wechat-release-handoff.md`. For final upload handoff, require the real WeChat appid instead of the checked
 in placeholder:
 
 ```bash
