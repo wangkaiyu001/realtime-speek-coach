@@ -32,6 +32,7 @@ export default tseslint.config(
       '**/dist/**',
       '**/node_modules/**',
       '**/.pnpm-store/**',
+      '**/tmp/**',
       'prisma/dev.db*',
       'prisma/test.db*',
     ],

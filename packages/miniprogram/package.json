@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc --noEmit && node ../../scripts/verify-miniprogram-release.mjs",
+    "build": "tsc --noEmit && node ../../scripts/build-miniprogram.mjs && node ../../scripts/verify-miniprogram-release.mjs",
     "test": "echo 'miniprogram tests placeholder'",
     "verify:release": "node ../../scripts/verify-miniprogram-release.mjs"
   },

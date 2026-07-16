@@ -2,7 +2,7 @@
 <view class="container">
   <view class="text-center mt-20 mb-20">
     <text class="title">选择练习场景</text>
-    <view class="subtitle">挑一个真实场景，马上开始 10 轮口语对练</view>
+    <view class="subtitle">挑一个真实场景，像面对真人一样开口聊</view>
   </view>
 
   <view class="history-section" wx:if="{{isLoadingSessions || hasRecentSessions}}">

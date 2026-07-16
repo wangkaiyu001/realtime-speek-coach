@@ -1,43 +1,64 @@
-<!-- pages/practice/index.wxml -->
-<view class="container">
-  <view class="turn-indicator">
-    第 {{turnCount}}/{{maxTurns}} 轮
+<view class="lesson-page">
+  <view class="lesson-topbar">
+    <view class="lesson-context">
+      <text class="eyebrow">LIVE LESSON</text>
+      <text class="lesson-title">场景口语对练</text>
+    </view>
+    <view class="turn-pill">{{turnCount === 0 ? '开场' : '第 ' + turnCount + '/' + maxTurns + ' 轮'}}</view>
   </view>
 
-  <view class="status-text">{{statusText}}</view>
-
-  <view class="retry-row" wx:if="{{canRetryTurn}}">
-    <button class="button retry-button" bindtap="onTapRetryTurn">重试本轮</button>
+  <view class="coach-stage">
+    <view class="coach-portrait mood-{{coachMoodClass}} {{state === 'speaking' ? 'is-speaking' : ''}}">
+      <view class="portrait-halo"></view>
+      <view class="portrait-face">{{coachName.slice(0, 1)}}</view>
+      <view class="voice-waves">
+        <view></view><view></view><view></view><view></view><view></view>
+      </view>
+    </view>
+    <view class="coach-copy">
+      <text class="eyebrow">YOUR COACH</text>
+      <text class="coach-name">{{coachName}}</text>
+      <text class="coach-mood">{{coachMood}}</text>
+    </view>
   </view>
 
-  <view class="chat-container">
-    <view class="message {{item.roleClass}}" wx:for="{{chatMessages}}" wx:key="id">
+  <view class="conversation-heading">
+    <view class="conversation-state">
+      <view class="live-dot state-{{state}}"></view>
+      <text>{{statusText}}</text>
+    </view>
+    <button class="transcript-toggle" bindtap="onTapTranscript">{{transcriptVisible ? '隐藏字幕' : '显示字幕'}}</button>
+  </view>
+
+  <scroll-view wx:if="{{transcriptVisible}}" scroll-y class="chat-container" scroll-into-view="last-message">
+    <view id="{{index === chatMessages.length - 1 ? 'last-message' : ''}}" class="message {{item.roleClass}}" wx:for="{{chatMessages}}" wx:key="id">
       <view class="avatar">{{item.avatar}}</view>
       <view class="message-content">{{item.text}}</view>
     </view>
-  </view>
+  </scroll-view>
 
-  <!-- Hint Modal -->
-  <view class="modal" wx:if="{{showHint}}">
-    <view class="modal-content">
-      <text class="modal-title">小提示</text>
-      <text class="modal-text">{{hintText}}</text>
-      <button class="button" bindtap="onTapHint">知道了</button>
+  <view class="speaking-dock">
+    <view class="turn-cue">
+      <text class="cue-title">{{state === 'idle' ? '轮到你了' : state === 'recording' ? '大胆说，不用完美' : state === 'speaking' ? '先听老师说' : statusText}}</text>
+      <text class="cue-subtitle">{{state === 'idle' ? '按一下开始；说完停顿后自动发送，之后会自动接力。' : state === 'recording' ? '自然说完整句话，再按一下可提前结束。' : '听她的语气、重音和态度。'}}</text>
+    </view>
+
+    <button class="record-button {{isRecording ? 'recording' : ''}}" bindtap="onTapRecord" disabled="{{recordDisabled}}">
+      <view class="mic-icon">●</view>
+      <text>{{recordButtonText}}</text>
+    </button>
+
+    <view class="secondary-actions">
+      <button class="quiet-button" bindtap="onTapHint">给我提示</button>
+      <button class="quiet-button" bindtap="onTapEndEarly">结束练习</button>
     </view>
   </view>
 
-  <!-- Controls -->
-  <view class="controls">
-    <button class="button hint-button" bindtap="onTapHint">
-      提示
-    </button>
-
-    <button class="button record-button" bindtap="onTapRecord" disabled="{{recordDisabled}}">
-      {{recordButtonText}}
-    </button>
-
-    <button class="button end-button" bindtap="onTapEndEarly">
-      结束
-    </button>
+  <view class="modal" wx:if="{{showHint}}" bindtap="onTapHint">
+    <view class="modal-content" catchtap="noop">
+      <text class="modal-title">像聊天一样说</text>
+      <text class="modal-text">{{hintText}}</text>
+      <button class="modal-button" bindtap="onTapHint">知道了</button>
+    </view>
   </view>
 </view>

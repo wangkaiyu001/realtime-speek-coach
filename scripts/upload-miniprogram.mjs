@@ -10,6 +10,7 @@ import ci from 'miniprogram-ci';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const miniRoot = path.join(repoRoot, 'packages', 'miniprogram');
+const buildRoot = path.join(repoRoot, 'tmp', 'miniprogram-release');
 const projectConfigPath = path.join(miniRoot, 'project.config.json');
 const packageJsonPath = path.join(repoRoot, 'package.json');
 const publicOrigin = 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com';
@@ -98,6 +99,15 @@ function cleanup() {
   }
 }
 
+function compileMiniProgram() {
+  const result = spawnSync(process.execPath, [path.join(repoRoot, 'scripts', 'build-miniprogram.mjs')], {
+    cwd: repoRoot,
+    stdio: 'inherit',
+    env: { ...process.env, MINIPROGRAM_BUILD_DIR: buildRoot },
+  });
+  if (result.status !== 0) fail('Mini program release build failed.');
+}
+
 function runMiniProgramGate(appid) {
   const result = spawnSync(process.execPath, [path.join(repoRoot, 'scripts', 'verify-miniprogram-release.mjs')], {
     cwd: repoRoot,
@@ -120,10 +130,12 @@ function createProject(appid, privateKeyOptions) {
     fail(`Missing ${path.relative(repoRoot, projectConfigPath)}`);
   }
 
+  compileMiniProgram();
+
   return new ci.Project({
     appid,
     type: 'miniProgram',
-    projectPath: miniRoot,
+    projectPath: buildRoot,
     ignores: [
       'node_modules/**/*',
       'miniprogram_npm/**/*',

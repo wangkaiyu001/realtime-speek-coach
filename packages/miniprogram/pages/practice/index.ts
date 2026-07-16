@@ -109,7 +109,7 @@ Page({
   data: {
     scenarioId: '',
     state: 'connecting' as PracticeState,
-    statusText: '正在连接 AI 教练...',
+    statusText: '正在进入场景...',
     turnCount: 0,
     maxTurns: 10,
     asrText: '',
@@ -118,12 +118,17 @@ Page({
     activeAiMessageId: '',
     activeUserMessageId: '',
     isRecording: false,
-    recordButtonText: '连接中...',
+    recordButtonText: '请稍候',
     recordDisabled: true,
     canRetryTurn: false,
     showHint: false,
-    hintText: '不用追求完美，尽量用目标语言回答。说短一点、自然一点就好。',
+    hintText: '不用追求完美。像面对真人一样，先回应，再补一句原因。',
     sessionId: '',
+    coachName: 'Mia',
+    coachMood: '很高兴见到你',
+    coachMoodClass: 'warm',
+    transcriptVisible: true,
+    handsFree: false,
   },
 
   wsClient: null as WechatMiniprogram.SocketTask | null,
@@ -140,15 +145,23 @@ Page({
   audioFileIndex: 0,
   audioContext: null as WechatMiniprogram.InnerAudioContext | null,
   isPlayingAudio: false,
+  autoSendTimer: null as TimeoutHandle | null,
+  recordingStartedAt: 0,
+  speechDetectedAt: 0,
+  lastVoiceAt: 0,
 
   onLoad(options: { scenarioId?: string }) {
     const scenarioId = options.scenarioId || 'en-shopping-01';
-    this.setData({ scenarioId });
+    this.setData({
+      scenarioId,
+      coachName: normalizeLanguage(app.globalData.language) === 'ja' ? 'Aoi' : 'Mia',
+    });
     this.connectWebSocket();
   },
 
   onUnload() {
     this.stopAudioPlayback();
+    this.stopAutoSendTimer();
     if (this.wsClient) {
       this.wsClient.close({});
       this.wsClient = null;
@@ -209,7 +222,7 @@ Page({
         this.setPracticeState('idle', {
           sessionId: frame.sessionId,
           maxTurns: frame.totalTurns,
-          statusText: '先听教练开场，然后点击“开始说话”回答。',
+          statusText: '老师会先开场，听完直接回应就好。',
         });
         break;
 
@@ -233,7 +246,7 @@ Page({
 
       case 'tts_chunk':
         if (this.data.state !== 'speaking') {
-          this.setPracticeState('speaking', { statusText: '教练正在说话，请认真听。' });
+          this.setPracticeState('speaking', { statusText: '老师正在说，听她的语气和重音。' });
         }
         this.enqueueAudioChunk(frame);
         break;
@@ -355,7 +368,8 @@ Page({
     }
 
     if (this.data.state === 'speaking') {
-      this.setPracticeState('idle', { statusText: '轮到你了，准备好后点击“开始说话”。' });
+      this.setPracticeState('idle', { statusText: '轮到你了，按一下直接说。' });
+      this.maybeContinueHandsFree();
     }
   },
 
@@ -386,29 +400,29 @@ Page({
       state,
       isRecording,
       statusText,
-      recordButtonText: isRecording ? '说完了' : this.getRecordButtonText(state),
+      recordButtonText: isRecording ? '正在听你说' : this.getRecordButtonText(state),
       recordDisabled: !isRecording && state !== 'idle',
     });
   },
 
   getStatusText(state: PracticeState) {
     const statusTextMap: Record<PracticeState, string> = {
-      connecting: '正在连接 AI 教练...',
-      idle: '准备好后点击“开始说话”。',
-      recording: '正在录音，说完后点击“说完了”。',
-      processing: '正在识别并分析你的回答...',
-      speaking: '教练正在说话，请认真听。',
-      error: '连接异常，请返回场景页后重试。',
+      connecting: '正在进入场景...',
+      idle: '轮到你了，按一下直接说。',
+      recording: '正在听你说，停顿后会自动发送。',
+      processing: '老师听到了，正在回应...',
+      speaking: '老师正在说，听她的语气和重音。',
+      error: '对话中断了，请返回后重新开始。',
     };
     return statusTextMap[state];
   },
 
   getRecordButtonText(state: PracticeState) {
-    if (state === 'connecting') return '连接中...';
-    if (state === 'processing') return '处理中...';
-    if (state === 'speaking') return '聆听中...';
-    if (state === 'error') return '暂不可用';
-    return '开始说话';
+    if (state === 'connecting') return '请稍候';
+    if (state === 'processing') return '老师在回应';
+    if (state === 'speaking') return '先听老师说';
+    if (state === 'error') return '重新进入';
+    return '按一下，直接说';
   },
 
   upsertMessage(message: ChatMessage) {
@@ -434,10 +448,14 @@ Page({
       id,
       role: 'ai',
       roleClass: 'ai-message',
-      avatar: '教练',
+      avatar: this.data.coachName.slice(0, 1),
       text,
     });
-    this.setData({ llmText: text });
+    this.setData({
+      llmText: text,
+      coachMood: this.getCoachMood(text).label,
+      coachMoodClass: this.getCoachMood(text).mood,
+    });
   },
 
   updateUserMessage(text: string) {
@@ -478,10 +496,12 @@ Page({
       activeAiMessageId: '',
       activeUserMessageId: '',
       canRetryTurn: false,
-      statusText: frame.sessionComplete ? '练习完成，正在生成复盘。' : '轮到你了，准备好后点击“开始说话”。',
+      statusText: frame.sessionComplete ? '聊得不错，正在整理反馈。' : '轮到你了，按一下直接说。',
     });
     if (frame.sessionComplete) {
       this.endPractice();
+    } else {
+      this.maybeContinueHandsFree();
     }
   },
 
@@ -494,6 +514,7 @@ Page({
     }
 
     if (this.data.state !== 'idle') return;
+    this.setData({ handsFree: true });
     this.startRecording();
   },
 
@@ -522,6 +543,7 @@ Page({
 
   doStartRecording() {
     const activeUserMessageId = `user-${this.data.turnCount + 1}-${Date.now()}`;
+    this.stopAutoSendTimer();
     this.setPracticeState('recording', {
       asrText: '',
       llmText: '',
@@ -531,16 +553,23 @@ Page({
     });
 
     const recorderManager = this.getRecorderManager();
+    this.recordingStartedAt = Date.now();
+    this.speechDetectedAt = 0;
+    this.lastVoiceAt = this.recordingStartedAt;
     this.attachRecorderFrameHandler();
 
     recorderManager.start({
-      duration: 60000, // max 60s
+      duration: 15000,
       sampleRate: 16000,
       numberOfChannels: 1,
       encodeBitRate: 48000,
       format: 'PCM',
       frameSize: 3, // ~100ms per frame at 16kHz
     });
+
+    this.autoSendTimer = setTimeout(() => {
+      if (this.data.isRecording) this.stopRecording();
+    }, 12000);
   },
 
   ensureRecordPermission(done: (granted: boolean) => void) {
@@ -590,7 +619,7 @@ Page({
             const granted = getRecorderAuthSetting(openResult.authSetting || {}) === true;
             this.setPracticeState('idle', {
               statusText: granted
-                ? '麦克风已开启，准备好后点击“开始说话”。'
+                ? '麦克风已开启，按一下就可以直接说。'
                 : '仍未开启麦克风权限，暂时无法录音。',
             });
             done(granted);
@@ -614,8 +643,9 @@ Page({
   finishRecordingTurn() {
     if (!this.data.isRecording) return;
 
+    this.stopAutoSendTimer();
     this.detachRecorderFrameHandler();
-    this.setPracticeState('processing');
+    this.setPracticeState('processing', { statusText: '老师听到了，正在回应...' });
 
     const turnIndex = this.data.turnCount + 1;
     this.sendFrame({
@@ -658,15 +688,38 @@ Page({
     this.recorderFrameHandler = (res) => {
       if (!this.recorderFrameEnabled || !this.data.isRecording) return;
 
+      const now = Date.now();
+      const rms = this.calculatePcmRms(res.frameBuffer);
+      if (rms > 0.018) {
+        this.speechDetectedAt ||= now;
+        this.lastVoiceAt = now;
+      }
+
       const base64 = wx.arrayBufferToBase64(res.frameBuffer);
       this.sendFrame({
         type: 'audio_chunk',
         data: base64,
-        seq: Date.now(),
+        seq: now,
       });
+
+      if (this.speechDetectedAt && now - this.lastVoiceAt > 1200 && this.data.isRecording) {
+        this.stopRecording();
+      }
     };
 
     recorderManager.onFrameRecorded(this.recorderFrameHandler);
+  },
+
+  calculatePcmRms(buffer: ArrayBuffer) {
+    if (buffer.byteLength < 2) return 0;
+    const view = new DataView(buffer);
+    const sampleCount = Math.floor(buffer.byteLength / 2);
+    let sumSquares = 0;
+    for (let index = 0; index < sampleCount; index += 1) {
+      const sample = view.getInt16(index * 2, true) / 32768;
+      sumSquares += sample * sample;
+    }
+    return Math.sqrt(sumSquares / sampleCount);
   },
 
   detachRecorderFrameHandler() {
@@ -678,6 +731,46 @@ Page({
       this.recorderFrameHandler = null;
     }
   },
+
+  stopAutoSendTimer() {
+    if (this.autoSendTimer) {
+      clearTimeout(this.autoSendTimer);
+      this.autoSendTimer = null;
+    }
+  },
+
+  maybeContinueHandsFree() {
+    if (!this.data.handsFree || this.data.state !== 'idle') return;
+    setTimeout(() => {
+      if (this.data.handsFree && this.data.state === 'idle') this.startRecording();
+    }, 450);
+  },
+
+  getCoachMood(text: string) {
+    const normalized = text.toLowerCase();
+    if (/great|excellent|perfect|wonderful|いいですね|すばらしい|ありがとう/.test(normalized)) {
+      return {
+        mood: 'delighted',
+        label: normalizeLanguage(app.globalData.language) === 'ja' ? 'いいですね！' : 'That was lovely',
+      };
+    }
+    if (/\?|why|what|how|どんな|なぜ|ですか/.test(normalized)) {
+      return {
+        mood: 'curious',
+        label: normalizeLanguage(app.globalData.language) === 'ja' ? 'もっと聞かせて' : "I'm curious",
+      };
+    }
+    return {
+      mood: 'encouraging',
+      label: normalizeLanguage(app.globalData.language) === 'ja' ? 'その調子です' : "You're doing well",
+    };
+  },
+
+  onTapTranscript() {
+    this.setData({ transcriptVisible: !this.data.transcriptVisible });
+  },
+
+  noop() {},
 
   onTapHint() {
     this.setData({ showHint: !this.data.showHint });

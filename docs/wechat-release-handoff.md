@@ -147,3 +147,15 @@ WX_APP_SECRET=<real-mini-program-secret>
 Keep `MOCK_VOICE`, `MOCK_LLM`, and `MOCK_REVIEW` enabled until each real provider
 passes its own smoke test. Store all production secrets only in CloudBase runtime
 variables, not in repository files.
+
+## Current upload status
+
+The AppID and CI private key have been validated by WeChat. The repository compiles TypeScript into a clean staging directory before invoking `miniprogram-ci`, and the WeChat compiler completes successfully.
+
+The current upload gateway requires this public IP in **Development management -> Development settings -> Mini Program code upload -> IP whitelist**:
+
+```text
+116.6.206.132
+```
+
+After adding the IP, rerun `npm run miniprogram:preview`. If the network changes later, WeChat may report a different `invalid ip` value; add that exact upload egress IP rather than disabling the whitelist.

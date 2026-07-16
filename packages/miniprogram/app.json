@@ -11,5 +11,10 @@
     "navigationBarTitleText": "Echoia 口语教练",
     "navigationBarTextStyle": "black"
   },
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "permission": {
+    "scope.record": {
+      "desc": "用于在口语对练中录制你的回答"
+    }
+  }
 }
