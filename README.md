@@ -1,5 +1,26 @@
 # Realtime Speak Coach (AI 口语私教)
 
+## 当前可用状态
+
+Echoia 已部署为可公开访问的 MVP 公测版，当前可以直接体验完整的模拟口语练习流程：
+
+- Web 体验版：https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
+- API：https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1
+- WebSocket：`wss://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/ws`
+- CloudBase 环境：`code-realtime-d7gbuxrbze297e600`
+- Cloud Run 服务：`echoia-server`
+
+当前线上版本使用 mock 模式提供登录、语音、对话和复盘能力，适合产品演示和端到端公测；它不代表真实微信登录、真实语音供应商和生产数据持久化已经完成。最新线上状态和发布证据见 [`docs/current-online-status.md`](docs/current-online-status.md)。
+
+上线前可运行完整发布检查：
+
+```bash
+PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:release
+PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run audit:go-live
+```
+
+微信小程序的构建、预览和上传自动化已经准备好。要生成真实体验版二维码，还需要在微信公众平台配置真实 AppID、代码上传私钥以及 request/socket 合法域名；具体步骤见 [`docs/wechat-release-handoff.md`](docs/wechat-release-handoff.md)。私钥不得提交到仓库。
+
 ## 项目简介
 
 Realtime Speak Coach 是一款基于微信小程序端打造的自适应 AI 语音口语对练产品，专为英语和日语学习者设计。该产品旨在打破传统外语学习中的“哑巴外语”困境，通过高逼真度、带有情绪和语气的 AI 对话系统，为用户提供沉浸式的外语交流环境。

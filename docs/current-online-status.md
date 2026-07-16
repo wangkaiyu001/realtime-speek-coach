@@ -1,20 +1,27 @@
 # Current online status
 
-Last verified: 2026-07-16 11:05 Asia/Shanghai.
+Last verified: 2026-07-16 12:47 Asia/Shanghai.
 
 ## GitHub sync status
 
-The last verified application commit on GitHub `main` is:
+The latest verified commit on GitHub `main` is:
 
 ```text
-04fb0eb32f3c20f11a3736d5e108c797d2b5723b Add full release verification handoff
+ef3b6e43442c938dd6eb830db453ce778c8cbf8d Add go-live audit script
 ```
 
-The GitHub Actions runs for that application commit completed successfully:
+At verification time, the local worktree was clean and matched `origin/main` exactly:
 
 ```text
-CI: success, run 29467831797
-Publish Docker image: success, run 29467831791
+git status --short --branch: ## main...origin/main
+git rev-list --left-right --count origin/main...HEAD: 0 0
+```
+
+The GitHub Actions runs for the latest commit completed successfully:
+
+```text
+CI: success, run 29471129823
+Publish Docker image: success, run 29471129801
 ```
 
 The Docker image publish workflow publishes these tags on each `main` push:
@@ -25,11 +32,13 @@ ghcr.io/wangkaiyu001/realtime-speek-coach:latest
 ghcr.io/wangkaiyu001/realtime-speek-coach:sha-<commit-sha>
 ```
 
-For the current repository synchronization state, use `git status --short
---branch` and `git rev-list --left-right --count origin/main...HEAD`; both
-should report no local/remote divergence before release handoff.
+The current go-live audit reports four passing gates and four expected warnings:
 
-The status-document refresh commit `1629bcb` was also pushed to GitHub and its CI and Docker image publish workflows passed (`29468197434` and `29468197353`). Later documentation-only status edits do not change the verified application release state above.
+```text
+pass=4, warn=4, fail=0
+```
+
+The warnings are the real WeChat AppID, WeChat CI private key, matching GitHub secrets, and mocked production providers. They do not block the public mock-mode trial, but they do block a real WeChat experience/release build and production-provider launch.
 
 ## Stable CloudBase public trial status
 
@@ -63,7 +72,7 @@ status: normal
 public access: enabled
 ```
 
-The public health check passed on 2026-07-16 11:05 Asia/Shanghai during the latest release verification:
+The public health check passed on 2026-07-16 12:47 Asia/Shanghai during the latest online audit:
 
 ```bash
 curl --max-time 20 https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1/health
