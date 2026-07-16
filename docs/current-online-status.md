@@ -29,15 +29,7 @@ For the current repository synchronization state, use `git status --short
 --branch` and `git rev-list --left-right --count origin/main...HEAD`; both
 should report no local/remote divergence before release handoff.
 
-Latest repository sync check after refreshing this status document:
-
-```text
-HEAD: 1629bcb484362c4ae2426ab084ab798704038293 Refresh release verification status
-origin/main: 1629bcb484362c4ae2426ab084ab798704038293
-local/remote divergence: 0 0
-CI: success, run 29468197434
-Publish Docker image: success, run 29468197353
-```
+The status-document refresh commit `1629bcb` was also pushed to GitHub and its CI and Docker image publish workflows passed (`29468197434` and `29468197353`). Later documentation-only status edits do not change the verified application release state above.
 
 ## Stable CloudBase public trial status
 
