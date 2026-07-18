@@ -103,7 +103,11 @@ function compileMiniProgram() {
   const result = spawnSync(process.execPath, [path.join(repoRoot, 'scripts', 'build-miniprogram.mjs')], {
     cwd: repoRoot,
     stdio: 'inherit',
-    env: { ...process.env, MINIPROGRAM_BUILD_DIR: buildRoot },
+    env: {
+      ...process.env,
+      MINIPROGRAM_BUILD_DIR: buildRoot,
+      MINIPROGRAM_DISABLE_URL_CHECK: command === 'preview' ? '1' : '0',
+    },
   });
   if (result.status !== 0) fail('Mini program release build failed.');
 }
@@ -229,6 +233,12 @@ process.on('SIGINT', () => {
 
 main().catch((error) => {
   cleanup();
-  console.error(error?.message || error);
+  const message = error?.message || String(error);
+  const invalidIp = message.match(/invalid ip:\s*([^,}\s]+)/i)?.[1];
+  if (invalidIp) {
+    console.error(`WeChat rejected the upload IP ${invalidIp}. Add it in Development management -> Development settings -> Mini Program code upload -> IP whitelist, then retry.`);
+  } else {
+    console.error(message);
+  }
   process.exit(1);
 });

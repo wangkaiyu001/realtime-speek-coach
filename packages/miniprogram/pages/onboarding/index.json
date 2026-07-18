@@ -1,4 +1,5 @@
 {
-  "navigationBarTitleText": "开始设置",
+  "navigationStyle": "custom",
+  "backgroundColor": "#f3eee2",
   "usingComponents": {}
 }

@@ -71,81 +71,72 @@ function restoreCachedLogin() {
   return true;
 }
 
-function completeLogin(code: string) {
-  if (!globalData.apiUrl) {
-    if (!restoreCachedLogin()) {
-      navigateByProfile('');
+function completeLogin(code: string, navigate = true): Promise<LoginResponse> {
+  return new Promise((resolve, reject) => {
+    if (!globalData.apiUrl) {
+      reject(new Error('服务地址还没有准备好'));
+      return;
     }
-    return;
-  }
 
-  wx.request({
-    url: `${globalData.apiUrl}/auth/login`,
-    method: 'POST',
-    data: { code },
-    header: { 'Content-Type': 'application/json' },
-    success: (res) => {
-      if (res.statusCode < 200 || res.statusCode >= 300) {
-        wx.showToast({ title: '免登录初始化失败', icon: 'none' });
-        if (!restoreCachedLogin()) {
-          navigateByProfile('');
+    wx.request({
+      url: `${globalData.apiUrl}/auth/login`,
+      method: 'POST',
+      data: { code },
+      header: { 'Content-Type': 'application/json' },
+      success: (res) => {
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          reject(new Error(`登录失败（${res.statusCode}）`));
+          return;
         }
-        return;
-      }
 
-      const data = res.data as LoginResponse;
-      if (!data || !data.token || !data.userId) {
-        wx.showToast({ title: '登录响应异常', icon: 'none' });
-        if (!restoreCachedLogin()) {
-          navigateByProfile('');
+        const data = res.data as LoginResponse;
+        if (!data || !data.token || !data.userId) {
+          reject(new Error('登录响应异常'));
+          return;
         }
-        return;
-      }
 
-      saveLoginState(data);
-      navigateByProfile(data.language);
-    },
-    fail: () => {
+        saveLoginState(data);
+        if (navigate) navigateByProfile(data.language);
+        resolve(data);
+      },
+      fail: (error) => reject(new Error(error.errMsg || '网络连接失败')),
+    });
+  });
+}
+
+export function refreshLogin(): Promise<LoginResponse> {
+  return new Promise((resolve, reject) => {
+    const envVersion = getMiniProgramEnvVersion();
+    const isReleaseLike = envVersion === 'release' || envVersion === 'trial';
+    if (!isReleaseLike) {
+      completeLogin(wx.getStorageSync('mockLoginCode') || 'dev-user-001', false).then(resolve).catch(reject);
+      return;
+    }
+
+    wx.login({
+      success: (res) => {
+        if (!res.code) {
+          reject(new Error('微信登录没有返回有效凭证'));
+          return;
+        }
+        completeLogin(res.code, false).then(resolve).catch(reject);
+      },
+      fail: (error) => reject(new Error(error.errMsg || '微信登录失败')),
+    });
+  });
+}
+
+function bootstrapLogin() {
+  refreshLogin()
+    .then((data) => navigateByProfile(data.language))
+    .catch(() => {
       const isReleaseLike = getMiniProgramEnvVersion() === 'release' || getMiniProgramEnvVersion() === 'trial';
       wx.showToast({
         title: isReleaseLike ? '服务暂时不可用，请稍后重试' : '请先启动本地服务',
         icon: 'none',
       });
-      if (!restoreCachedLogin()) {
-        navigateByProfile('');
-      }
-    },
-  });
-}
-
-function bootstrapLogin() {
-  const envVersion = getMiniProgramEnvVersion();
-  const isReleaseLike = envVersion === 'release' || envVersion === 'trial';
-
-  if (!isReleaseLike) {
-    completeLogin(wx.getStorageSync('mockLoginCode') || 'dev-user-001');
-    return;
-  }
-
-  wx.login({
-    success: (res) => {
-      if (res.code) {
-        completeLogin(res.code);
-        return;
-      }
-
-      wx.showToast({ title: '微信登录失败', icon: 'none' });
-      if (!restoreCachedLogin()) {
-        navigateByProfile('');
-      }
-    },
-    fail: () => {
-      wx.showToast({ title: '微信登录失败', icon: 'none' });
-      if (!restoreCachedLogin()) {
-        navigateByProfile('');
-      }
-    },
-  });
+      if (!restoreCachedLogin()) navigateByProfile('');
+    });
 }
 
 App<IAppOption>({

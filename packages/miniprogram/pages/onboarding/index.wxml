@@ -1,36 +1,51 @@
-<!-- pages/onboarding/index.wxml -->
-<view class="container">
-  <view class="text-center mt-20 mb-20">
-    <text class="title">选择练习语言</text>
-  </view>
-
-  <view class="card">
-    <view class="flex-col gap-20">
-      <view class="language-card" data-language="en" bindtap="onLanguageChange">
-        <view class="flex-row justify-center align-center gap-10">
-          <view class="flag">EN</view>
-          <text class="language-text">English</text>
-          <radio checked="{{isEnglishSelected}}" color="#1677ff" />
-        </view>
-      </view>
-
-      <view class="language-card" data-language="ja" bindtap="onLanguageChange">
-        <view class="flex-row justify-center align-center gap-10">
-          <view class="flag">JA</view>
-          <text class="language-text">日本語</text>
-          <radio checked="{{isJapaneseSelected}}" color="#1677ff" />
-        </view>
-      </view>
+<view class="onboarding-page">
+  <view class="brand-row">
+    <view class="brand-mark">E</view>
+    <view class="brand-copy">
+      <text class="brand-name">Echoia</text>
+      <text class="brand-tagline">SPEAK WITH CONFIDENCE</text>
     </view>
   </view>
 
-  <view class="text-center mt-20 text-danger">
-    <text>当前版本会先使用你选择的语言开始体验，后续可在设置中切换。</text>
+  <view class="hero-copy">
+    <text class="eyebrow">你的私人 AI 口语教练</text>
+    <text class="headline">今天，想用哪种语言开口？</text>
+    <text class="lead">选一个语言，马上进入真实场景。老师会先和你打招呼。</text>
   </view>
 
-  <view class="mt-20">
-    <button class="button full-width" bindtap="onConfirm" loading="{{isLoading}}">
-      开始体验
+  <view class="language-list">
+    <button class="language-option english" data-language="en" bindtap="onChooseLanguage" disabled="{{isLoading}}">
+      <view class="language-code">EN</view>
+      <view class="language-copy">
+        <text class="language-name">English</text>
+        <text class="language-scenes">日常 · 旅行 · 职场 · 雅思</text>
+      </view>
+      <view class="option-action">
+        <view wx:if="{{loadingLanguage === 'en'}}" class="spinner"></view>
+        <text wx:else>开始说 →</text>
+      </view>
     </button>
+
+    <button class="language-option japanese" data-language="ja" bindtap="onChooseLanguage" disabled="{{isLoading}}">
+      <view class="language-code">JP</view>
+      <view class="language-copy">
+        <text class="language-name">日本語</text>
+        <text class="language-scenes">生活 · 旅行 · 職場 · JSST</text>
+      </view>
+      <view class="option-action">
+        <view wx:if="{{loadingLanguage === 'ja'}}" class="spinner"></view>
+        <text wx:else>話してみる →</text>
+      </view>
+    </button>
+  </view>
+
+  <view wx:if="{{errorText}}" class="error-card">
+    <view class="error-dot"></view>
+    <text>{{errorText}}</text>
+  </view>
+
+  <view class="promise-row">
+    <view class="promise-line"></view>
+    <text>不用准备好才开口，开口本身就是练习。</text>
   </view>
 </view>

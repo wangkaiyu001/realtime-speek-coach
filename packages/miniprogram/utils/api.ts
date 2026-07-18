@@ -3,6 +3,18 @@
 
 import { globalData } from '../app';
 
+export class ApiRequestError extends Error {
+  statusCode: number;
+  code: string;
+
+  constructor(message: string, statusCode = 0, code = 'REQUEST_FAILED') {
+    super(message);
+    this.name = 'ApiRequestError';
+    this.statusCode = statusCode;
+    this.code = code;
+  }
+}
+
 interface ApiEnvelope<T> {
   code?: number;
   data?: T;
@@ -101,6 +113,7 @@ interface RequestReviewResponse {
 
 const DEFAULT_RETRY_COUNT = 3;
 const RETRY_DELAY = 1000;
+let authRefreshPromise: Promise<void> | null = null;
 
 function unwrapResponse<T>(body: unknown): T {
   const response = body as ApiEnvelope<T>;
@@ -115,7 +128,7 @@ function unwrapResponse<T>(body: unknown): T {
   return body as T;
 }
 
-export async function request<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: string, data?: string | WechatMiniprogram.IAnyObject | ArrayBuffer, retries = DEFAULT_RETRY_COUNT): Promise<T> {
+export async function request<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: string, data?: string | WechatMiniprogram.IAnyObject | ArrayBuffer, retries = DEFAULT_RETRY_COUNT, authRetried = false): Promise<T> {
   const { apiUrl, token } = globalData;
   const url = `${apiUrl}${path}`;
 
@@ -132,7 +145,21 @@ export async function request<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path
         try {
           if (res.statusCode < 200 || res.statusCode >= 300) {
             const errorBody = res.data as ApiEnvelope<unknown>;
-            reject(new Error(errorBody?.message || errorBody?.error || `HTTP ${res.statusCode}`));
+            const message = errorBody?.message || errorBody?.error || `HTTP ${res.statusCode}`;
+            if (res.statusCode === 401 && !authRetried) {
+              if (!authRefreshPromise) {
+                authRefreshPromise = import('../app')
+                  .then(({ refreshLogin }) => refreshLogin())
+                  .then(() => undefined)
+                  .finally(() => { authRefreshPromise = null; });
+              }
+              authRefreshPromise
+                .then(() => request<T>(method, path, data, retries, true))
+                .then(resolve)
+                .catch(reject);
+              return;
+            }
+            reject(new ApiRequestError(message, res.statusCode, res.statusCode === 401 ? 'AUTH_EXPIRED' : 'HTTP_ERROR'));
             return;
           }
 
@@ -144,12 +171,16 @@ export async function request<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path
       fail: (err) => {
         if (retries > 0) {
           setTimeout(() => {
-            request<T>(method, path, data, retries - 1)
+            request<T>(method, path, data, retries - 1, authRetried)
               .then(resolve)
               .catch(reject);
           }, RETRY_DELAY);
         } else {
-          reject(new Error(`Request failed after ${DEFAULT_RETRY_COUNT} retries: ${err.errMsg}`));
+          reject(new ApiRequestError(
+            '暂时连接不上服务，请检查网络后重试。',
+            0,
+            /url not in domain list|domain/i.test(err.errMsg || '') ? 'DOMAIN_NOT_ALLOWED' : 'NETWORK_ERROR',
+          ));
         }
       },
     });

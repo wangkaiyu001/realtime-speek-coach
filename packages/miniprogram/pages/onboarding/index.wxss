@@ -1,43 +1,29 @@
-/* pages/onboarding/index.wxss */
-
-.title {
-  font-size: 48rpx;
-  font-weight: bold;
-  margin-bottom: 20rpx;
-}
-
-.language-card {
-  background-color: var(--card-background);
-  border: 2rpx solid var(--border-color);
-  border-radius: 16rpx;
-  padding: 24rpx;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.language-card:hover {
-  border-color: var(--primary-color);
-  box-shadow: 0 4rpx 12rpx rgba(22, 119, 255, 0.1);
-}
-
-.flag {
-  width: 60rpx;
-  height: 40rpx;
-  border-radius: 8rpx;
-  background-color: var(--primary-color);
-  color: white;
-  font-size: 22rpx;
-  line-height: 40rpx;
-  text-align: center;
-}
-
-.language-text {
-  font-size: 36rpx;
-  flex: 1;
-  text-align: left;
-}
-
-radio {
-  transform: scale(1.5);
-  margin-left: 20rpx;
-}
+page { min-height: 100%; background: #f3eee2; color: #18231d; }
+.onboarding-page { min-height: 100vh; padding: 70rpx 38rpx calc(56rpx + env(safe-area-inset-bottom)); box-sizing: border-box; background: radial-gradient(circle at 80% 18%, rgba(197,161,90,.14), transparent 34%), #f3eee2; }
+.brand-row { display: flex; align-items: center; gap: 20rpx; }
+.brand-mark { display: flex; align-items: center; justify-content: center; width: 76rpx; height: 76rpx; border-radius: 50% 50% 44% 56%; background: #18231d; color: white; font-family: serif; font-size: 42rpx; }
+.brand-copy { display: flex; flex-direction: column; }
+.brand-name { font-family: serif; font-size: 38rpx; font-weight: 700; }
+.brand-tagline { margin-top: 2rpx; color: #6e756f; font-size: 16rpx; letter-spacing: 2rpx; }
+.hero-copy { display: flex; flex-direction: column; margin-top: 108rpx; }
+.eyebrow { color: #d16b4b; font-size: 21rpx; font-weight: 800; letter-spacing: 4rpx; }
+.headline { margin-top: 22rpx; max-width: 650rpx; font-family: serif; font-size: 68rpx; line-height: 1.17; letter-spacing: -3rpx; }
+.lead { margin-top: 28rpx; max-width: 620rpx; color: #59665e; font-size: 28rpx; line-height: 1.75; }
+.language-list { display: flex; flex-direction: column; gap: 24rpx; margin-top: 72rpx; }
+.language-option { display: flex; align-items: center; width: 100%; min-height: 166rpx; margin: 0; padding: 28rpx; border: 1rpx solid rgba(24,35,29,.12); border-radius: 8rpx 52rpx 8rpx 8rpx; background: rgba(255,250,240,.88); color: #18231d; text-align: left; box-shadow: 0 14rpx 45rpx rgba(24,35,29,.07); }
+.language-option::after { border: 0; }
+.language-option.japanese { border-radius: 52rpx 8rpx 8rpx 8rpx; }
+.language-option[disabled] { opacity: .68; }
+.language-code { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 84rpx; height: 84rpx; border: 1rpx solid rgba(63,107,85,.35); border-radius: 50%; color: #3f6b55; font-size: 22rpx; font-weight: 900; letter-spacing: 1rpx; }
+.japanese .language-code { border-color: rgba(209,107,75,.38); color: #b5563d; }
+.language-copy { display: flex; flex: 1; flex-direction: column; min-width: 0; margin-left: 24rpx; }
+.language-name { font-family: serif; font-size: 42rpx; }
+.language-scenes { margin-top: 7rpx; color: #6e756f; font-size: 22rpx; }
+.option-action { display: flex; flex: 0 0 auto; align-items: center; justify-content: flex-end; min-width: 112rpx; color: #3f6b55; font-size: 23rpx; font-weight: 800; }
+.japanese .option-action { color: #b5563d; }
+.spinner { width: 34rpx; height: 34rpx; border: 4rpx solid rgba(63,107,85,.18); border-top-color: #3f6b55; border-radius: 50%; animation: spin .8s linear infinite; }
+.error-card { display: flex; align-items: flex-start; gap: 14rpx; margin-top: 24rpx; padding: 20rpx 24rpx; border-left: 6rpx solid #d16b4b; background: rgba(209,107,75,.08); color: #8f412e; font-size: 24rpx; line-height: 1.55; }
+.error-dot { flex: 0 0 auto; width: 12rpx; height: 12rpx; margin-top: 11rpx; border-radius: 50%; background: #d16b4b; }
+.promise-row { display: flex; align-items: center; gap: 20rpx; margin-top: 64rpx; color: #6e756f; font-size: 23rpx; line-height: 1.5; }
+.promise-line { flex: 0 0 64rpx; height: 2rpx; background: #c5a15a; }
+@keyframes spin { to { transform: rotate(360deg); } }

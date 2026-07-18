@@ -24,8 +24,20 @@ function copyAssets(sourceDir, targetDir) {
   }
 }
 
+
+function configureUrlCheck() {
+  const configPath = path.join(outputRoot, 'project.config.json');
+  if (!fs.existsSync(configPath)) return;
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  config.setting = config.setting || {};
+  config.setting.urlCheck = process.env.MINIPROGRAM_DISABLE_URL_CHECK !== '1';
+  fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}
+`);
+}
+
 fs.rmSync(outputRoot, { recursive: true, force: true });
 copyAssets(sourceRoot, outputRoot);
+configureUrlCheck();
 
 const tscPath = path.join(repoRoot, 'node_modules', 'typescript', 'bin', 'tsc');
 const result = spawnSync(process.execPath, [
