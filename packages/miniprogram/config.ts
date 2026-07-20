@@ -1,17 +1,16 @@
-// config.ts
-// Mini program runtime endpoint configuration.
+// Mini program runtime configuration.
 //
-// Before publishing a trial/release build, set PRODUCTION_SERVER_ORIGIN to the
-// HTTPS domain of the deployed server, for example: https://api.example.com
-// The app will derive /api/v1 and /ws from this origin.
-//
-// If PRODUCTION_SERVER_ORIGIN is left empty, trial/release builds intentionally
-// fail fast instead of silently pointing users to a local development server.
-// For preview testing, set wx storage key `serverOrigin`, `apiUrl`, or `wsUrl`
-// from DevTools before launching the mini program.
+// The Echoia service runs in the same CloudBase environment that is associated
+// with this mini program. Mini program API and WebSocket traffic therefore uses
+// wx.cloud.callContainer / wx.cloud.connectContainer instead of public domains.
 
-const DEVELOPMENT_SERVER_ORIGIN = 'http://localhost:3000';
+export const CLOUDBASE_ENV_ID = 'code-realtime-d7gbuxrbze297e600';
+export const CLOUDBASE_SERVICE_NAME = 'echoia-server';
+
+// Kept for Web preview and release verification. The mini program itself uses
+// the bound CloudBase environment and does not rely on this public URL.
 const PRODUCTION_SERVER_ORIGIN = 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com';
+const DEVELOPMENT_SERVER_ORIGIN = 'http://localhost:3000';
 
 export interface EndpointConfig {
   apiUrl: string;
@@ -26,6 +25,13 @@ function toWsOrigin(origin: string) {
   if (origin.startsWith('https://')) return origin.replace(/^https:\/\//, 'wss://');
   if (origin.startsWith('http://')) return origin.replace(/^http:\/\//, 'ws://');
   return origin;
+}
+
+export function getCloudContainerConfig() {
+  return {
+    env: CLOUDBASE_ENV_ID,
+    service: CLOUDBASE_SERVICE_NAME,
+  };
 }
 
 export function getMiniProgramEnvVersion() {
@@ -53,17 +59,10 @@ export function getConfiguredOrigin() {
 }
 
 export function getEndpointConfig(): EndpointConfig {
-  const storedApiUrl = wx.getStorageSync('apiUrl');
-  const storedWsUrl = wx.getStorageSync('wsUrl');
   const origin = getConfiguredOrigin();
-
-  if (!origin && (!storedApiUrl || !storedWsUrl)) {
-    return { apiUrl: '', wsUrl: '' };
-  }
-
   return {
-    apiUrl: storedApiUrl ? trimTrailingSlash(String(storedApiUrl)) : `${origin}/api/v1`,
-    wsUrl: storedWsUrl ? trimTrailingSlash(String(storedWsUrl)) : `${toWsOrigin(origin)}/ws`,
+    apiUrl: `${origin}/api/v1`,
+    wsUrl: `${toWsOrigin(origin)}/ws`,
   };
 }
 
@@ -71,18 +70,6 @@ export function isProductionEndpointConfigured() {
   return !!PRODUCTION_SERVER_ORIGIN;
 }
 
-export function assertEndpointConfigReady(config: EndpointConfig) {
-  if (config.apiUrl && config.wsUrl) return true;
-
-  if (isReleaseLikeEnv()) {
-    wx.showModal({
-      title: '服务地址未配置',
-      content: '当前体验版/正式版没有配置生产服务地址，请联系管理员发布正确的后端域名。',
-      showCancel: false,
-    });
-    return false;
-  }
-
-  wx.showToast({ title: '请先配置或启动本地服务', icon: 'none' });
-  return false;
+export function assertEndpointConfigReady(_config: EndpointConfig) {
+  return true;
 }

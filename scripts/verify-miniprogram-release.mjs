@@ -45,6 +45,17 @@ function extractProductionOrigin() {
   return match[1].replace(/\/$/, '');
 }
 
+function extractCloudContainerConfig() {
+  const configPath = path.join(miniRoot, 'config.ts');
+  const source = fs.readFileSync(configPath, 'utf8');
+  const envMatch = source.match(/export\s+const\s+CLOUDBASE_ENV_ID\s*=\s*['"]([^'"]+)['"]/);
+  const serviceMatch = source.match(/export\s+const\s+CLOUDBASE_SERVICE_NAME\s*=\s*['"]([^'"]+)['"]/);
+  if (!envMatch || !serviceMatch) {
+    fail('config.ts must define CLOUDBASE_ENV_ID and CLOUDBASE_SERVICE_NAME for mini program container access.');
+  }
+  return { envId: envMatch[1], serviceName: serviceMatch[1] };
+}
+
 function assertHttpsOrigin(origin) {
   if (!origin) fail('PRODUCTION_SERVER_ORIGIN is empty; trial/release builds would fail fast.');
 
@@ -112,7 +123,10 @@ function main() {
     fail(`PRODUCTION_SERVER_ORIGIN (${productionOrigin}) does not match PUBLIC_ORIGIN (${expectedOrigin}).`);
   }
 
+  const cloudContainer = extractCloudContainerConfig();
   console.log('Mini program release readiness checks passed.');
+  console.log(`CLOUDBASE_ENV_ID=${cloudContainer.envId}`);
+  console.log(`CLOUDBASE_SERVICE_NAME=${cloudContainer.serviceName}`);
   console.log(`PRODUCTION_SERVER_ORIGIN=${productionOrigin}`);
   if (warnings.length > 0) {
     console.log('Warnings:');

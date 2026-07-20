@@ -12,7 +12,8 @@ export interface IAppOption {
   };
 }
 
-import { assertEndpointConfigReady, getEndpointConfig, getMiniProgramEnvVersion, isProductionEndpointConfigured } from './config';
+import { CLOUDBASE_ENV_ID, getEndpointConfig, getMiniProgramEnvVersion } from './config';
+import { callContainer } from './utils/cloud-container';
 
 interface LoginResponse {
   token: string;
@@ -72,36 +73,13 @@ function restoreCachedLogin() {
 }
 
 function completeLogin(code: string, navigate = true): Promise<LoginResponse> {
-  return new Promise((resolve, reject) => {
-    if (!globalData.apiUrl) {
-      reject(new Error('服务地址还没有准备好'));
-      return;
-    }
-
-    wx.request({
-      url: `${globalData.apiUrl}/auth/login`,
-      method: 'POST',
-      data: { code },
-      header: { 'Content-Type': 'application/json' },
-      success: (res) => {
-        if (res.statusCode < 200 || res.statusCode >= 300) {
-          reject(new Error(`登录失败（${res.statusCode}）`));
-          return;
-        }
-
-        const data = res.data as LoginResponse;
-        if (!data || !data.token || !data.userId) {
-          reject(new Error('登录响应异常'));
-          return;
-        }
-
-        saveLoginState(data);
-        if (navigate) navigateByProfile(data.language);
-        resolve(data);
-      },
-      fail: (error) => reject(new Error(error.errMsg || '网络连接失败')),
+  return callContainer<LoginResponse>('/api/v1/auth/login', 'POST', { code })
+    .then((data) => {
+      if (!data.token || !data.userId) throw new Error('登录响应异常');
+      saveLoginState(data);
+      if (navigate) navigateByProfile(data.language);
+      return data;
     });
-  });
 }
 
 export function refreshLogin(): Promise<LoginResponse> {
@@ -143,19 +121,14 @@ App<IAppOption>({
   globalData,
 
   onLaunch() {
+    wx.cloud.init({
+      env: CLOUDBASE_ENV_ID,
+      traceUser: true,
+    });
+
     const endpoints = getEndpointConfig();
     globalData.apiUrl = endpoints.apiUrl;
     globalData.wsUrl = endpoints.wsUrl;
-
-    const envVersion = getMiniProgramEnvVersion();
-    if ((envVersion === 'release' || envVersion === 'trial') && !isProductionEndpointConfigured()) {
-      console.error('[App] PRODUCTION_SERVER_ORIGIN is not configured for release/trial build.');
-    }
-
-    if (!assertEndpointConfigReady(endpoints)) {
-      return;
-    }
-
     bootstrapLogin();
   },
 });

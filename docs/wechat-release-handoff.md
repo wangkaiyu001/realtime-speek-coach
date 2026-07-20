@@ -2,28 +2,27 @@
 
 This handoff uses the current stable Echoia public-trial backend.
 
-## Verified backend
+## Verified backend and mini program access
 
 ```text
-Origin: https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
-API:    https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1
-Socket: wss://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/ws
+CloudBase environment: code-realtime-d7gbuxrbze297e600
+Cloud Run service:      echoia-server
+Public web origin:      https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
 ```
 
-The first public trial intentionally runs with mocked login, voice, LLM, and
-review providers so users can experience the full practice loop before WeChat
-registration/filing and production provider credentials are finalized.
+The mini program now initializes the bound CloudBase environment and calls the
+container through `wx.cloud.callContainer` and `wx.cloud.connectContainer`.
+This keeps API and WebSocket traffic inside the CloudBase mini program access
+path and does **not** require the public default domain to be added under
+WeChat "server domains" for the mini program path.
 
-## Required WeChat console settings
+The public default domain is still kept for the Web trial and public release
+verification. It remains useful for browser access but is no longer the mini
+program's runtime transport.
 
-In the WeChat mini program console, add this host to the legal domain allowlist:
-
-```text
-request legal domain: echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
-socket legal domain:  echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
-```
-
-Do not use the obsolete Cloudflare quick tunnel for trial or release builds.
+Before previewing or uploading, ensure the Echoia mini program is associated
+with `code-realtime-d7gbuxrbze297e600` in CloudBase and the environment contains
+the `echoia-server` Cloud Run service.
 
 ## CI upload or preview
 
@@ -31,8 +30,7 @@ The repository includes a `miniprogram-ci` wrapper so the final experience build
 can be uploaded without opening WeChat DevTools, as long as the mini program CI
 private key has been generated in the WeChat console.
 
-Before running the upload, configure the legal domains above and keep the upload
-private key outside the repository. The repo ignores `*.key`, `*.pem`, and
+Before running the upload, confirm the mini program remains associated with the CloudBase environment above and keep the upload private key outside the repository. The repo ignores `*.key`, `*.pem`, and
 `project.private.config.json`; do not commit those files.
 
 Create an experience-version preview QR code:
@@ -135,8 +133,7 @@ WECHAT_APPID=<wx-appid> VERIFY_REQUIRE_WECHAT_APPID=1 PUBLIC_ORIGIN=https://echo
 
 ## Switching from public-trial mode to real login
 
-After the mini program is registered/filed and the legal domains are configured,
-set these CloudBase runtime variables and redeploy/restart the service:
+After the mini program is registered/filed, set these CloudBase runtime variables and redeploy/restart the service:
 
 ```text
 MOCK_AUTH=0
@@ -152,10 +149,11 @@ variables, not in repository files.
 
 The AppID and CI private key have been validated by WeChat. The repository compiles TypeScript into a clean staging directory before invoking `miniprogram-ci`, and the WeChat compiler completes successfully.
 
-The current upload gateway requires this public IP in **Development management -> Development settings -> Mini Program code upload -> IP whitelist**:
+The local upload gateway requires these public IPs in **Development management -> Development settings -> Mini Program code upload -> IP whitelist**:
 
 ```text
 116.6.206.132
+183.159.105.112
 ```
 
 After adding the IP, rerun `npm run miniprogram:preview`. If the network changes later, WeChat may report a different `invalid ip` value; add that exact upload egress IP rather than disabling the whitelist.

@@ -106,7 +106,6 @@ function compileMiniProgram() {
     env: {
       ...process.env,
       MINIPROGRAM_BUILD_DIR: buildRoot,
-      MINIPROGRAM_DISABLE_URL_CHECK: command === 'preview' ? '1' : '0',
     },
   });
   if (result.status !== 0) fail('Mini program release build failed.');

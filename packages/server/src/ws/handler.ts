@@ -85,6 +85,7 @@ interface MockTurn {
 
 interface WsRequestLike {
   url?: string;
+  headers?: { authorization?: string | string[] | undefined };
 }
 
 const DEFAULT_MOCK_TURNS: Record<Language, MockTurn[]> = {
@@ -168,9 +169,15 @@ const SCENARIO_MOCK_TURNS: Record<string, MockTurn[]> = {
 const activeSessions = new Map<WebSocket, ActiveSession>();
 
 export const websocketHandler = (connection: WebSocket, request: WsRequestLike) => {
-  // Extract token from query params
   const url = new URL(request.url || '/ws', 'http://localhost');
-  const token = url.searchParams.get('token');
+  const queryToken = url.searchParams.get('token');
+  const authorization = Array.isArray(request.headers?.authorization)
+    ? request.headers?.authorization[0]
+    : request.headers?.authorization;
+  const bearerToken = authorization?.startsWith('Bearer ')
+    ? authorization.slice('Bearer '.length).trim()
+    : '';
+  const token = queryToken || bearerToken;
 
   if (!token) {
     connection.close(1008, 'Token missing');

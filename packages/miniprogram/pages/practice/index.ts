@@ -2,6 +2,7 @@
 // Practice room - core conversation page
 
 import { IAppOption } from '../../app';
+import { connectContainerSocket } from '../../utils/cloud-container';
 
 type Language = 'en' | 'ja';
 
@@ -173,18 +174,18 @@ Page({
     }
   },
 
-  connectWebSocket() {
-    const { wsUrl, token } = app.globalData;
-    const url = `${wsUrl}?token=${token}`;
+  async connectWebSocket() {
+    const { token } = app.globalData;
 
-    this.wsClient = wx.connectSocket({
-      url,
-      success: () => console.log('[Practice] WS connecting...'),
-    });
+    try {
+      this.wsClient = await connectContainerSocket('/ws', token);
+    } catch (error) {
+      console.error('[Practice] Cloud container socket connect failed:', error);
+      this.setPracticeState('error', { statusText: '暂时无法进入对话，请稍后再试。' });
+      return;
+    }
 
     this.wsClient.onOpen(() => {
-      console.log('[Practice] WS connected');
-      // Send hello frame
       this.sendFrame({
         type: 'hello',
         sessionId: '',
@@ -197,22 +198,20 @@ Page({
       try {
         const frame = JSON.parse(typeof res.data === 'string' ? res.data : '') as WsServerFrame;
         this.handleServerFrame(frame);
-      } catch (e) {
-        console.error('[Practice] Parse error:', e);
+      } catch (error) {
+        console.error('[Practice] Parse error:', error);
       }
     });
 
     this.wsClient.onClose(() => {
-      console.log('[Practice] WS closed');
       if (!this.hasNavigated && !this.isEndingEarly) {
-        this.setPracticeState('error', { statusText: '连接已断开，请返回场景页后重试。' });
+        this.setPracticeState('error', { statusText: '对话连接已断开，请返回场景页后重试。' });
       }
     });
 
-    this.wsClient.onError((err) => {
-      console.error('[Practice] WS error:', err);
-      wx.showToast({ title: '连接异常', icon: 'none' });
-      this.setPracticeState('error', { statusText: '连接异常，请返回场景页后重试。' });
+    this.wsClient.onError((error) => {
+      console.error('[Practice] Cloud container socket error:', error);
+      this.setPracticeState('error', { statusText: '对话连接异常，请稍后再试。' });
     });
   },
 

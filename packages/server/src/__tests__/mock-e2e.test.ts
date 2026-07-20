@@ -324,6 +324,21 @@ describe('mock end-to-end practice flow without listening on a port', () => {
     expect(saved).toMatchObject({ language: LANGUAGE, turnsCompleted: readyFrame?.totalTurns, status: 'completed', hasReview: true });
   }, 30000);
 
+  test('accepts a bearer token during CloudBase container WebSocket upgrade', async () => {
+    const login = await loginAndSelectLanguage(app, 'mock-e2e-container-header');
+    const socket = new TestSocket();
+    websocketHandler(socket as any, {
+      url: '/ws',
+      headers: { authorization: `Bearer ${login.token}` },
+    });
+    socket.clientSend({ type: 'hello', sessionId: '', scenarioId: SCENARIO_ID, language: LANGUAGE });
+
+    const ready = await waitForFrame(socket, (frame) => frame.type === 'ready');
+    expectReadyFrame(ready);
+    await waitForFrame(socket, (frame) => frame.type === 'tts_chunk' && frame.isLast);
+    socket.close(1000, 'test complete');
+  }, 30000);
+
   test('can request a partial review after an abandoned session', async () => {
     const login = await loginAndSelectLanguage(app, 'mock-e2e-partial');
     const session = await runPracticeSession(login.token, { abortAfter: 3, requestReviewOnAbort: false });

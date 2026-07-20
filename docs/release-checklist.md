@@ -109,14 +109,20 @@ Set it to the verified public HTTPS origin for the backend. The current verified
 const PRODUCTION_SERVER_ORIGIN = 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com';
 ```
 
-The mini program will derive:
+The public CloudBase origin remains available for the Web trial:
 
-- API: `https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1`
-- WebSocket: `wss://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/ws`
+- Web/API origin: `https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com`
 
-This CloudBase origin replaced the previous temporary Cloudflare quick tunnel. Before every trial/release build, run `PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:public` and confirm it still passes.
+The mini program itself now uses the CloudBase container access path:
 
-Trial/release builds now fail fast if `PRODUCTION_SERVER_ORIGIN` is empty, so they will not accidentally point real users at `localhost`. For preview testing without editing the constant, set mini program storage keys `serverOrigin`, `apiUrl`, or `wsUrl` in DevTools. For local development, the default remains `http://localhost:3000`.
+- Environment: `code-realtime-d7gbuxrbze297e600`
+- Service: `echoia-server`
+- HTTP: `wx.cloud.callContainer(...)`
+- WebSocket: `wx.cloud.connectContainer(...)`
+
+This avoids the mini program public-domain allowlist path. The mini program must
+remain associated with this environment. Before every trial/release build, run
+`PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:public` and confirm it still passes.
 
 The client uses `wx.login()` in trial/release builds and sends the real WeChat code to `/auth/login`. The server supports both modes:
 
