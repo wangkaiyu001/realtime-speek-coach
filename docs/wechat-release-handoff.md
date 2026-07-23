@@ -148,19 +148,22 @@ variables, not in repository files.
 
 The AppID and CI private key have been validated by WeChat. The repository compiles TypeScript into a clean staging directory before invoking `miniprogram-ci`, and the WeChat compiler completes successfully.
 
-The local upload gateway previously required these public IPs in **Development
-management -> Development settings -> Mini Program code upload -> IP
-whitelist**:
+The local upload gateway is whitelisted and validated. On 2026-07-24 it
+successfully generated `tmp/wechat-preview-qrcode.jpg` and uploaded version
+`0.1.0` with robot 1 to the WeChat console.
+
+Previously observed upload IPs include:
 
 ```text
 116.6.206.132
 183.159.105.112
 115.194.3.176
 172.184.247.2
+20.29.223.65
 ```
 
-The last two values are the local and GitHub Actions upload gateways observed on
-2026-07-24. If WeChat reports `invalid ip` again, add the exact current upload
-egress IP and rerun the preview rather than disabling the whitelist. GitHub
-hosted runners do not guarantee a fixed outbound IP, so a later run may report a
-new value.
+`115.194.3.176` is the currently validated local gateway. `20.29.223.65` was the
+GitHub-hosted runner reported by run `30054075464`; GitHub runner egress is not
+stable. If WeChat reports `invalid ip` again, add the exact current egress IP and
+rerun rather than disabling the whitelist. For unattended remote uploads, use a
+self-hosted runner or another release host with a stable outbound IP.

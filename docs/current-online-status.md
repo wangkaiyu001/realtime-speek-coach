@@ -1,6 +1,6 @@
 # Current online status
 
-Last verified: 2026-07-24 04:18 Asia/Shanghai.
+Last verified: 2026-07-24 07:49 Asia/Shanghai.
 
 ## Source and release status
 
@@ -162,18 +162,26 @@ action to produce the `wechat-preview-qrcode` artifact. The local private key is
 also available outside the repository for a local preview fallback. Never commit
 or print its contents.
 
-Preview upload attempts on 2026-07-24 compiled successfully but WeChat rejected
-the upload gateways because they were not yet present in the code-upload IP
-whitelist:
+The local code-upload IP whitelist is now working. On 2026-07-24, the
+repository successfully generated a fresh preview QR code and uploaded mini
+program version `0.1.0` with robot 1 to the WeChat console as an experience /
+review-candidate build. The QR image is intentionally kept outside Git in:
 
 ```text
-local upload: 115.194.3.176
-GitHub Actions upload: 172.184.247.2 (run 30040134535)
+tmp/wechat-preview-qrcode.jpg
 ```
 
-Add both current egress IPs in WeChat Development settings, then rerun the
-workflow. A future GitHub-hosted runner can use a different outbound IP, so use
-the exact `invalid ip` value reported by a retry if it changes.
+The GitHub Actions preview path passes the full release gate but GitHub-hosted
+runner IPs are not stable. Run `30054075464` reached WeChat and was rejected only
+because its new egress IP `20.29.223.65` was not in the code-upload whitelist.
+The reliable current release path is the validated local CI key; add the exact
+new runner IP before a remote retry, or use a self-hosted runner with a stable
+outbound IP for unattended releases.
+
+The release verifier now retries a short-lived readiness failure up to three
+times. This handles transient CloudBase MySQL connection interruptions without
+hiding persistent failures; the initial remote retry failure was confirmed as a
+single Prisma `P1001`, followed by repeated successful readiness checks.
 
 The detailed handoff and real-device checklist are in
 `docs/wechat-release-handoff.md`.
