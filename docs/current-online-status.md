@@ -1,30 +1,22 @@
 # Current online status
 
-Last verified: 2026-07-16 18:31 Asia/Shanghai.
+Last verified: 2026-07-24 03:30 Asia/Shanghai.
 
-## GitHub sync status
+## Source and release status
 
-The latest verified commit on GitHub `main` is:
-
-```text
-202845b562aa26055a0318b174247e977b928a17 Harden public HTTP endpoints
-```
-
-At verification time, the local worktree was clean and matched `origin/main` exactly:
+The release currently serving production was built from the local source changes
+listed in this worktree and deployed before the final Git commit. The last synced
+GitHub `main` commit at the start of this release was:
 
 ```text
-git status --short --branch: ## main...origin/main
-git rev-list --left-right --count origin/main...HEAD: 0 0
+665dc161c6973dfc3fa788a43c9c64b780f5ffa1 Route mini program traffic through CloudBase Run
 ```
 
-The GitHub Actions runs for the latest commit completed successfully:
+After the release changes are committed, pushed, and CI completes, update this
+section with the final commit and workflow run IDs. Do not treat a successful
+CloudBase deployment as a substitute for source control and CI evidence.
 
-```text
-CI: success, run 29478480857
-Publish Docker image: success, run 29478480890
-```
-
-The Docker image publish workflow publishes these tags on each `main` push:
+The Docker image publish workflow creates these tags on each `main` push:
 
 ```text
 ghcr.io/wangkaiyu001/realtime-speek-coach:main
@@ -32,29 +24,22 @@ ghcr.io/wangkaiyu001/realtime-speek-coach:latest
 ghcr.io/wangkaiyu001/realtime-speek-coach:sha-<commit-sha>
 ```
 
-The current go-live audit reports five passing gates and four expected warnings:
+## Stable CloudBase public trial
 
-```text
-pass=5, warn=4, fail=0
-```
-
-The real WeChat AppID `wx37f86133fd3d2de4` is now checked into the mini program project and configured as the GitHub Actions secret `WECHAT_APPID`. The remaining WeChat release blocker is the CI upload private key (`WECHAT_PRIVATE_KEY`), plus legal-domain configuration and real-device validation. Mocked production providers remain a separate production-mode decision.
-
-## Stable CloudBase public trial status
-
-CloudBase account/resource status has recovered. The CloudBase environment is:
+CloudBase environment:
 
 ```text
 code-realtime-d7gbuxrbze297e600: NORMAL
+region: ap-shanghai
+package: personal plan
+auto-renew: enabled
 ```
 
-The stable CloudBase Cloud Run backend is live at:
+The stable CloudBase Cloud Run backend and Web preview are live at:
 
 ```text
 https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
 ```
-
-The root web preview is also reachable and serves the `Echoia Web 体验版` page.
 
 Derived endpoints:
 
@@ -63,22 +48,63 @@ API: https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1
 WebSocket: wss://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/ws
 ```
 
-The deployed CloudBase service is:
+Current service configuration:
 
 ```text
 service: echoia-server
-service update time: 2026-07-16 18:15:44 Asia/Shanghai
+service update time: 2026-07-24 03:14:39 Asia/Shanghai
+online version: echoia-server-039
+traffic: 100%
 status: normal
 public access: enabled
+access types: OA, PUBLIC, MINIAPP
+CPU / memory: 0.5 CPU / 1 GB
+instances: 1-5
+production schema push on startup: disabled
 ```
 
-The public health check passed on 2026-07-16 18:31 Asia/Shanghai during the latest online audit:
+The service is attached to the private network used by CloudBase MySQL:
 
-```bash
-curl --max-time 20 https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com/api/v1/health
+```text
+VPC: vpc-2xght3xc (172.17.0.0/16)
+Subnet: subnet-qdmeiifz (172.17.0.0/24)
 ```
 
-Response summary:
+Production uses the shared CloudBase MySQL database. Container-local SQLite is
+rejected by the startup guard, and `DATABASE_PUSH_ON_START=0` prevents normal
+container restarts from changing the production schema.
+
+## Runtime verification
+
+The final public release verification passed after version 039 received 100% of
+traffic:
+
+```text
+Health check passed
+Readiness check passed: database connected
+HTTP/WebSocket mock smoke passed
+Mini program release readiness passed
+Full release verification passed
+```
+
+Verification smoke session:
+
+```text
+cmrxw7z730002if78dbbkubm7
+```
+
+The version 039 startup log confirms the production schema guard is active:
+
+```text
+[startup] Skipping Prisma schema push
+Server running on port 3000
+```
+
+The `/api/v1/ready` response reports `database=connected`, proving that the
+running Cloud Run instances can reach MySQL through the configured VPC.
+
+The public health response reports the current trial mode without exposing
+secrets:
 
 ```json
 {
@@ -89,129 +115,74 @@ Response summary:
     "voice": true,
     "llm": true,
     "review": true
-  },
-  "providers": {
-    "deepseek": true,
-    "gemini": false,
-    "volcVoice": false
-  },
-  "auth": {
-    "mode": "mock",
-    "wechatConfigured": false
   }
 }
 ```
 
-The deployed service now exposes `/api/v1/ready`. It verifies database connectivity separately from process liveness and reports `{"status":"ready","database":"connected"}`. The release verifier requires this result before running the end-to-end smoke flow. The server also handles `SIGTERM`/`SIGINT` with graceful Fastify and Prisma shutdown.
+The HTTP service also sends Helmet security headers and rate-limit headers. The
+login limiter is per process, so strict global traffic protection should still
+be configured at the platform edge before a broad public launch.
 
-The currently deployed HTTP service also sends Helmet security headers, including HSTS, `X-Content-Type-Options: nosniff`, and `X-Frame-Options: SAMEORIGIN`. The login route advertises a per-instance limit of 20 requests per minute through `X-RateLimit-*` headers. Because CloudBase may run multiple container instances, platform-level traffic protection remains necessary for a strict global limit.
+## Mini program CloudBase container access
 
-The full release verifier also passed during the latest verification:
-
-```bash
-PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:release
-```
-
-Result:
+The Echoia mini program is associated with the same CloudBase environment and
+service:
 
 ```text
-Health check passed
-Readiness check passed: {"status":"ready","database":"connected"}
-Smoke test passed: en en-shopping-01 session cmrnd9il8000o10z0dyonbaoq
-Public release verification passed.
-Mini program release readiness checks passed.
-Full release verification passed.
+Environment: code-realtime-d7gbuxrbze297e600
+Service: echoia-server
+HTTP: wx.cloud.callContainer
+WebSocket: wx.cloud.connectContainer
+AppID: wx37f86133fd3d2de4
 ```
 
-The service is intentionally running in public-trial mock mode:
+This transport replaces direct `wx.request` / `wx.connectSocket` calls for the
+mini program path, so the CloudBase container route does not depend on adding the
+public default domain to WeChat server-domain settings. The public domain remains
+enabled for the Web trial and external release verification.
 
-```text
-MOCK=1
-MOCK_AUTH=1
-MOCK_VOICE=1
-MOCK_LLM=1
-MOCK_REVIEW=1
-```
-
-This allows the end-to-end practice flow to be tested before WeChat login,
-voice, LLM, review, and production database credentials are finalized.
-
-## Mini program endpoint
-
-The mini program production endpoint in `packages/miniprogram/config.ts` now
-points to the stable CloudBase origin:
-
-```ts
-const PRODUCTION_SERVER_ORIGIN = 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com';
-```
-
-Trial/release builds derive the API and WebSocket URLs from that origin.
-
-The repository also includes the static files needed for WeChat DevTools import
-and release checks:
+The repository contains the static project files and CI tooling required for a
+preview or upload:
 
 - `packages/miniprogram/project.config.json`
 - `packages/miniprogram/sitemap.json`
+- `scripts/build-miniprogram.mjs`
 - `scripts/verify-miniprogram-release.mjs`
+- `scripts/upload-miniprogram.mjs`
+- `.github/workflows/wechat-miniprogram.yml`
 
-Run this full release gate before uploading a trial/release build:
+GitHub Actions has both required secret names configured:
 
-```bash
-PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:release
+```text
+WECHAT_APPID
+WECHAT_PRIVATE_KEY
 ```
 
-Run this static mini program gate when only checking DevTools packaging metadata:
+Use the manual **WeChat mini program release** workflow with the `preview`
+action to produce the `wechat-preview-qrcode` artifact. The local private key is
+also available outside the repository for a local preview fallback. Never commit
+or print its contents.
 
-```bash
-npm run verify:miniprogram
-```
-
-The complete WeChat handoff is in `docs/wechat-release-handoff.md`. The real AppID is configured; keep the explicit release check enabled:
-
-```bash
-WECHAT_APPID=<wx-appid> VERIFY_REQUIRE_WECHAT_APPID=1 npm run verify:miniprogram
-```
-
-When the WeChat CI private key is available, the repository can generate a
-preview QR code or upload an experience/release candidate without manual
-DevTools import:
-
-```bash
-WECHAT_APPID=<wx-appid> WECHAT_PRIVATE_KEY_PATH=/absolute/path/private.<wx-appid>.key npm run miniprogram:preview
-WECHAT_APPID=<wx-appid> WECHAT_PRIVATE_KEY_PATH=/absolute/path/private.<wx-appid>.key WECHAT_UPLOAD_VERSION=0.1.0 npm run miniprogram:upload
-```
-
-These commands now have the real AppID available. They still require the upload private key and WeChat console legal-domain configuration before they can complete.
-
-The same upload path is available from GitHub Actions through the manual
-**WeChat mini program release** workflow after adding repository secrets
-`WECHAT_APPID` and `WECHAT_PRIVATE_KEY`. Use its `preview` action to create a QR
-artifact for real-device testing, then `upload` when the experience build is
-ready for the WeChat console.
+The detailed handoff and real-device checklist are in
+`docs/wechat-release-handoff.md`.
 
 ## Obsolete temporary tunnel
 
-The previous Cloudflare quick tunnel is obsolete and should not be used for
-trial/release builds:
+Do not use the old Cloudflare quick tunnel in trial or release builds. The
+stable CloudBase endpoint above replaces it.
 
-```text
-https://deals-crest-cartridges-instead.trycloudflare.com
-```
+## Remaining production decisions
 
-It returned Cloudflare 530 / error 1016 during the latest checks. The stable
-CloudBase endpoint above replaces it.
+The current deployment is a working, durable, end-to-end public trial, but it is
+intentionally not a real-provider launch:
 
-## Remaining production-hardening items
-
-These are not blocking the first public trial because the current deployment is
-explicitly a mock-mode trial backend:
-
-1. Register/file the WeChat mini program and switch `MOCK_AUTH=0` with
-   `WX_APP_ID` and `WX_APP_SECRET`.
-2. Decide which downstream providers should be real in production and switch
-   `MOCK_VOICE`, `MOCK_LLM`, and `MOCK_REVIEW` independently after their own
-   smoke tests pass.
-3. Replace SQLite-on-container storage with durable production persistence for
-   long-term user history.
-4. Set or rotate production secrets only through CloudBase runtime variables,
-   not repository files.
+1. Complete a real-device mini program preview test and submit the build through
+   WeChat review, filing, and release steps.
+2. When real WeChat login is approved, configure `WX_APP_ID` and
+   `WX_APP_SECRET`, set `MOCK_AUTH=0`, and run a dedicated login smoke test.
+3. Switch voice, LLM, and review providers independently only after confirming
+   credentials, billing authorization, quotas, latency, privacy, and rollback.
+4. Monitor CloudBase MySQL backups, indexes, connections, resource usage, and
+   the environment renewal status.
+5. Keep production secrets only in CloudBase or GitHub secret storage, never in
+   repository files or deployment logs.

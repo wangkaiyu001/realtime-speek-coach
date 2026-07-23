@@ -29,20 +29,36 @@ export async function callContainer<T>(
   header: Record<string, string> = {},
 ): Promise<T> {
   const { env, service } = getCloudContainerConfig();
-  const response = await wx.cloud.callContainer({
-    config: { env },
-    service,
-    path,
-    method,
-    data,
-    header: {
-      'Content-Type': 'application/json',
-      ...header,
-    },
-  });
+  let response: { data: unknown; statusCode: number };
+  try {
+    response = await wx.cloud.callContainer({
+      config: { env },
+      path,
+      method,
+      data,
+      dataType: 'text',
+      header: {
+        'Content-Type': 'application/json',
+        'X-WX-SERVICE': service,
+        ...header,
+      },
+    });
+  } catch (error) {
+    const detail = error && typeof error === 'object' && 'errMsg' in error
+      ? String(error.errMsg)
+      : '云托管调用失败';
+    throw new CloudContainerError(detail);
+  }
 
   if (response.statusCode < 200 || response.statusCode >= 300) {
-    const body = response.data as { message?: string; error?: string } | undefined;
+    let body = response.data as { message?: string; error?: string; code?: string } | undefined;
+    if (typeof response.data === 'string') {
+      try {
+        body = JSON.parse(response.data) as { message?: string; error?: string; code?: string };
+      } catch {
+        body = { error: response.data };
+      }
+    }
     throw new CloudContainerError(
       body?.message || body?.error || `服务请求失败（${response.statusCode}）`,
       response.statusCode,
@@ -54,14 +70,20 @@ export async function callContainer<T>(
 
 export async function connectContainerSocket(path: string, token: string): Promise<WechatMiniprogram.SocketTask> {
   const { env, service } = getCloudContainerConfig();
-  const response = await wx.cloud.connectContainer({
-    config: { env },
-    service,
-    path,
-    header: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return response.socketTask;
+  try {
+    const response = await wx.cloud.connectContainer({
+      config: { env },
+      service,
+      path,
+      header: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.socketTask;
+  } catch (error) {
+    const detail = error && typeof error === 'object' && 'errMsg' in error
+      ? String(error.errMsg)
+      : '云托管实时连接失败';
+    throw new CloudContainerError(detail);
+  }
 }

@@ -1,7 +1,7 @@
 // pages/practice/index.ts
 // Practice room - core conversation page
 
-import { IAppOption } from '../../app';
+import { IAppOption, refreshLogin } from '../../app';
 import { connectContainerSocket } from '../../utils/cloud-container';
 
 type Language = 'en' | 'ja';
@@ -51,6 +51,7 @@ interface WsServerLlmDelta {
 
 interface WsServerError {
   type: 'error';
+  code?: string;
   message?: string;
   retryable?: boolean;
 }
@@ -255,6 +256,10 @@ Page({
         break;
 
       case 'error':
+        if (frame.code === 'AUTH_EXPIRED') {
+          this.recoverExpiredLogin();
+          break;
+        }
         wx.showToast({ title: frame.message || '出错了', icon: 'none' });
         if (frame.retryable) {
           this.setPracticeState('idle', {
@@ -271,6 +276,22 @@ Page({
 
       case 'heartbeat_ack':
         break;
+    }
+  },
+
+  async recoverExpiredLogin() {
+    if (this.wsClient) {
+      this.wsClient.close({});
+      this.wsClient = null;
+    }
+    this.setPracticeState('connecting', { statusText: '登录状态已更新，正在重新进入对话...' });
+
+    try {
+      await refreshLogin();
+      if (!this.hasNavigated && !this.isEndingEarly) await this.connectWebSocket();
+    } catch (error) {
+      console.error('[Practice] Failed to refresh expired login:', error);
+      this.setPracticeState('error', { statusText: '登录状态已失效，请返回场景页后重试。' });
     }
   },
 

@@ -10,7 +10,9 @@ services:
     env_file:
       - .env
     environment:
+      NODE_ENV: development
       DATABASE_URL: file:/app/data/dev.db
+      DATABASE_PUSH_ON_START: "1"
       HOST: ${HOST:-0.0.0.0}
       PORT: ${PORT:-3000}
       MOCK_AUTH: ${MOCK_AUTH:-1}

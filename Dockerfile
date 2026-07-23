@@ -32,7 +32,6 @@ WORKDIR /app
 ENV NODE_ENV=production \
   HOST=0.0.0.0 \
   PORT=3000 \
-  DATABASE_URL=file:/app/data/dev.db \
   MOCK=1 \
   MOCK_AUTH=1 \
   MOCK_VOICE=1 \

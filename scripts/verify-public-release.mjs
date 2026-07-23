@@ -122,6 +122,7 @@ function runSmoke(apiUrl, wsUrl) {
         WS_URL: wsUrl,
         SMOKE_REQUIRE_MOCK_LLM: REQUIRE_MOCKS.llm ? '1' : '0',
         SMOKE_REQUIRE_MOCK_REVIEW: REQUIRE_MOCKS.review ? '1' : '0',
+        SMOKE_VERIFY_BOTH_LANGUAGES: '1',
       },
     });
     child.on('error', reject);

@@ -8,11 +8,12 @@
     "build": "tsc",
     "start": "node dist/server/src/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "db:migrate": "prisma migrate dev --schema ../../prisma/schema.prisma",
-    "db:push": "prisma db push --schema ../../prisma/schema.prisma --skip-generate",
+    "test": "prisma generate --schema ../../prisma/schema.sqlite.prisma && vitest run",
+    "db:migrate": "prisma migrate dev --schema ../../prisma/schema.sqlite.prisma",
+    "db:push": "node ../../scripts/prisma-runtime.mjs db push --skip-generate",
     "db:generate": "prisma generate --schema ../../prisma/schema.prisma",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx src/db/seed.ts",
+    "db:generate:local": "prisma generate --schema ../../prisma/schema.sqlite.prisma"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.0",

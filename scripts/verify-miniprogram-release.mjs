@@ -98,6 +98,23 @@ function verifyAppJson() {
   }
 }
 
+function verifyCloudContainerTransport() {
+  const appSource = fs.readFileSync(path.join(miniRoot, 'app.ts'), 'utf8');
+  const apiSource = fs.readFileSync(path.join(miniRoot, 'utils', 'api.ts'), 'utf8');
+  const containerSource = fs.readFileSync(path.join(miniRoot, 'utils', 'cloud-container.ts'), 'utf8');
+  const practiceSource = fs.readFileSync(path.join(miniRoot, 'pages', 'practice', 'index.ts'), 'utf8');
+
+  if (!appSource.includes('wx.cloud.init')) fail('app.ts must initialize wx.cloud for mini program CloudBase access.');
+  if (!apiSource.includes('callContainer')) fail('utils/api.ts must route mini program API calls through callContainer.');
+  if (!containerSource.includes('wx.cloud.callContainer')) fail('cloud-container.ts must use wx.cloud.callContainer.');
+  if (!containerSource.includes('wx.cloud.connectContainer')) fail('cloud-container.ts must use wx.cloud.connectContainer.');
+  if (!containerSource.includes("'X-WX-SERVICE'")) fail('cloud-container.ts must set X-WX-SERVICE for HTTP CloudBase service routing.');
+  if (!containerSource.includes("dataType: 'text'")) fail('cloud-container.ts must parse HTTP container responses explicitly.');
+  if (containerSource.includes("responseType: 'text'")) fail('cloud-container.ts must not force responseType=text; callContainer dataType handles response parsing.');
+  if (!practiceSource.includes('connectContainerSocket')) fail('practice page must use the CloudBase container WebSocket transport.');
+  if (!practiceSource.includes("frame.code === 'AUTH_EXPIRED'")) fail('practice page must recover when the shared login row expires.');
+}
+
 function verifyProjectConfig() {
   const projectConfig = readJson('project.config.json');
   if (projectConfig.compileType !== 'miniprogram') fail('project.config.json compileType must be "miniprogram".');
@@ -116,6 +133,7 @@ function verifyProjectConfig() {
 function main() {
   verifyAppJson();
   verifyProjectConfig();
+  verifyCloudContainerTransport();
 
   const productionOrigin = extractProductionOrigin();
   assertHttpsOrigin(productionOrigin);

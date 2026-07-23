@@ -18,7 +18,7 @@ For the first public trial, keep WeChat login mocked and choose the other provid
 NODE_ENV=production
 HOST=0.0.0.0
 PORT=3000
-DATABASE_URL=file:/app/data/dev.db
+DATABASE_URL=mysql://echoia_app:<password>@<cloudbase-mysql-private-ip>:3306/<database>
 JWT_SECRET=<replace-with-a-long-random-secret>
 
 # Login is intentionally deferred until the mini program is registered and filed.
@@ -28,6 +28,7 @@ MOCK_AUTH=1
 MOCK_VOICE=1
 MOCK_LLM=1
 MOCK_REVIEW=1
+DATABASE_PUSH_ON_START=0
 ```
 
 The production Docker image sets these public-trial defaults as a safety net.
@@ -53,7 +54,7 @@ VOLC_TTS_FORMAT=mp3
 
 ## 2. Docker start
 
-The container start script runs database push first and then starts the built server. It defaults to `HOST=0.0.0.0` and `PORT=3000`, so it is suitable for container platforms.
+The production container starts the server without changing the schema. Apply schema changes explicitly before deployment, and keep `DATABASE_PUSH_ON_START=0` in Cloud Run. It also refuses non-MySQL production database URLs and missing/placeholder JWT secrets. Local Docker Compose sets schema push to `1` for the disposable SQLite development database.
 
 ```bash
 docker compose up --build server
@@ -82,13 +83,14 @@ tcb login
 tcb --config-file /dev/null env list --json
 ```
 
-Configure the Cloud Run service environment variables from section 1 in the CloudBase console, then deploy from the repository root:
+Configure the Cloud Run service environment variables from section 1 in the CloudBase console, attach the service to the MySQL VPC/subnet, then deploy from the repository root:
 
 ```bash
 CLOUDBASE_ENV_ID=<envId> sh scripts/cloudbase-deploy.sh
 ```
 
-See `docs/cloudbase-deploy.md` for the full CloudBase MCP/Codex setup, deployment steps, mini program domain configuration, and SQLite persistence notes.
+See `docs/cloudbase-deploy.md` for the full CloudBase MCP/Codex setup,
+deployment steps, mini program association, and shared MySQL configuration.
 
 If CloudBase is blocked or isolated, deploy the published Docker image from
 GitHub Container Registry to another long-running container platform with

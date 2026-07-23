@@ -26,6 +26,21 @@ function findWorkspaceRoot(startDir: string): string {
   return startDir;
 }
 
+if (!process.env.DATABASE_URL && process.env.NODE_ENV === 'production') {
+  throw new Error('DATABASE_URL is required in production and must point to shared persistent storage.');
+}
+
+if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL?.startsWith('mysql://')) {
+  throw new Error('DATABASE_URL must use CloudBase MySQL in production.');
+}
+
+if (
+  process.env.NODE_ENV === 'production'
+  && (!process.env.JWT_SECRET || ['change-me-in-production', 'dev-secret-change-me'].includes(process.env.JWT_SECRET))
+) {
+  throw new Error('JWT_SECRET is required in production and must be persistent across instances.');
+}
+
 if (!process.env.DATABASE_URL) {
   const workspaceRoot = findWorkspaceRoot(process.env.INIT_CWD || process.cwd());
   process.env.DATABASE_URL = `file:${join(workspaceRoot, 'prisma', 'dev.db')}`;

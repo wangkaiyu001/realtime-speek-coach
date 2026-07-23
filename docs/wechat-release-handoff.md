@@ -89,9 +89,8 @@ and mini program release metadata are checked on every remote upload attempt.
    packages/miniprogram
    ```
 
-3. Replace the checked-in placeholder appid (`touristappid`) with the real mini
-   program appid in DevTools local project settings, or temporarily set it in
-   `packages/miniprogram/project.config.json` before uploading.
+3. Confirm DevTools shows the checked-in AppID `wx37f86133fd3d2de4` and the
+   CloudBase environment `code-realtime-d7gbuxrbze297e600`.
 4. Build/upload an experience version first.
 5. Run through the MVP loop on a real device:
    - open mini program
@@ -149,11 +148,15 @@ variables, not in repository files.
 
 The AppID and CI private key have been validated by WeChat. The repository compiles TypeScript into a clean staging directory before invoking `miniprogram-ci`, and the WeChat compiler completes successfully.
 
-The local upload gateway requires these public IPs in **Development management -> Development settings -> Mini Program code upload -> IP whitelist**:
+The local upload gateway previously required these public IPs in **Development
+management -> Development settings -> Mini Program code upload -> IP
+whitelist**:
 
 ```text
 116.6.206.132
 183.159.105.112
 ```
 
-After adding the IP, rerun `npm run miniprogram:preview`. If the network changes later, WeChat may report a different `invalid ip` value; add that exact upload egress IP rather than disabling the whitelist.
+They should already be present if the previous CI-key validation was completed.
+If WeChat reports `invalid ip` again, add the exact current upload egress IP and
+rerun `npm run miniprogram:preview` rather than disabling the whitelist.

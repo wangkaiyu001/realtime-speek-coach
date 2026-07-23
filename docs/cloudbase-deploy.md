@@ -6,7 +6,9 @@ This project is deployed to Tencent CloudBase with Cloud Run (container hosting)
 
 The current MVP server is a Fastify HTTP service with a WebSocket endpoint at `/ws`. Cloud Run is the lowest-risk fit because it can run the existing Docker image without rewriting the realtime practice flow into cloud functions.
 
-For the first public trial, SQLite is acceptable so the product can go online quickly. Treat it as MVP storage only: container rebuilds, scaling, or storage changes can affect persistence. After the core flow is validated, migrate the Prisma datasource to a managed database.
+Cloud Run uses the shared CloudBase MySQL database. Container-local SQLite is
+explicitly rejected in production because login, language selection, sessions,
+and reviews can be routed to different pods.
 
 ## CloudBase MCP/Codex setup
 
@@ -51,7 +53,7 @@ Set these variables in the CloudBase console for the `echoia-server` Cloud Run s
 NODE_ENV=production
 HOST=0.0.0.0
 PORT=3000
-DATABASE_URL=file:/app/data/dev.db
+DATABASE_URL=mysql://echoia_app:<password>@<cloudbase-mysql-private-ip>:3306/<database>
 JWT_SECRET=<replace-with-a-long-random-secret>
 
 # Login is intentionally mocked until the mini program is registered and filed.
@@ -63,6 +65,7 @@ MOCK_VOICE=1
 MOCK_LLM=1
 MOCK_REVIEW=1
 CORS_ORIGIN=*
+DATABASE_PUSH_ON_START=0
 ```
 
 The production Docker image also carries the same safe public-trial defaults so
@@ -96,7 +99,14 @@ From the repository root:
 CLOUDBASE_ENV_ID=<envId> sh scripts/cloudbase-deploy.sh
 ```
 
-The script deploys this directory as a container Cloud Run service named `echoia-server` on port `3000`.
+The script deploys this directory as a container Cloud Run service named `echoia-server` on port `3000`. The service must be attached to the same VPC/subnet as CloudBase MySQL; otherwise Prisma reports `P1001` against the private database address. For the current environment, deploy with VPC `vpc-2xght3xc` and subnet `subnet-qdmeiifz` (or re-query the MySQL instance context before changing environments).
+
+The script passes `--installDependency true` to CloudBase CLI. For container
+deployments this is used to exclude the local `node_modules` directory from the
+uploaded source archive; the Dockerfile still performs the actual dependency
+installation during the image build. CloudBase CLI 3.5.0 may still ask whether
+to use a gray release for an existing service even with `--force`; choose full
+release unless a canary rollout is intentional.
 
 ## 4. Verify the service
 
@@ -183,6 +193,6 @@ API_URL=https://<cloudbase-domain>/api/v1 WS_URL=wss://<cloudbase-domain>/ws nod
 ## Deferred after MVP
 
 - Real WeChat login and filing-dependent setup.
-- Replace SQLite with managed persistent storage.
+- Keep CloudBase MySQL backups, indexes, and connection limits monitored.
 - Queue-backed async review pipeline.
 - Full placement test and production observability.

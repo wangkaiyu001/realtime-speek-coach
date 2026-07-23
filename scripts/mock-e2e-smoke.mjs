@@ -267,6 +267,27 @@ async function main() {
 
   const login = await loginAndSelectLanguage(LOGIN_CODE);
 
+  if (process.env.SMOKE_VERIFY_BOTH_LANGUAGES === '1') {
+    const alternateLanguage = LANGUAGE === 'en' ? 'ja' : 'en';
+    await request('/user/language', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${login.token}` },
+      body: JSON.stringify({ language: alternateLanguage }),
+    });
+    const alternateScenarios = await request('/scenarios', {
+      headers: { Authorization: `Bearer ${login.token}` },
+    });
+    assert(
+      alternateScenarios.scenarios?.every((scenario) => scenario.language === alternateLanguage),
+      `Alternate language ${alternateLanguage} did not return matching scenarios`,
+    );
+    await request('/user/language', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${login.token}` },
+      body: JSON.stringify({ language: LANGUAGE }),
+    });
+  }
+
   const scenarios = await request('/scenarios', {
     headers: { Authorization: `Bearer ${login.token}` },
   });

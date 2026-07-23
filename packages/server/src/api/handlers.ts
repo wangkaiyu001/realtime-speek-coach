@@ -153,10 +153,17 @@ export async function setLanguageHandler(request: FastifyRequest, reply: Fastify
     return reply.status(400).send({ error: 'Unsupported language' });
   }
 
-  await prisma.user.update({
+  const updated = await prisma.user.updateMany({
     where: { id: userId },
     data: { language },
   });
+
+  if (updated.count !== 1) {
+    return reply.status(401).send({
+      error: 'Login state is no longer available. Please sign in again.',
+      code: 'AUTH_EXPIRED',
+    });
+  }
 
   return reply.send({ success: true });
 }

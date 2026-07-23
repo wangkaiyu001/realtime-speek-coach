@@ -25,7 +25,7 @@ For the first public trial, run the image with these environment variables:
 NODE_ENV=production
 HOST=0.0.0.0
 PORT=3000
-DATABASE_URL=file:/app/data/dev.db
+DATABASE_URL=mysql://echoia_app:<password>@<shared-mysql-host>:3306/<database>
 JWT_SECRET=<long-random-secret>
 MOCK=1
 MOCK_AUTH=1
@@ -33,12 +33,17 @@ MOCK_VOICE=1
 MOCK_LLM=1
 MOCK_REVIEW=1
 CORS_ORIGIN=*
+DATABASE_PUSH_ON_START=0
 ```
 
-Mount a persistent volume at `/app/data` if the platform supports it. Without a
-volume, SQLite data can be lost when the container is replaced. For real
-production traffic, migrate `DATABASE_URL` to a managed database instead of local
-SQLite.
+Use a managed shared MySQL database. The production container refuses a `file:`
+database URL because per-instance SQLite state breaks authentication and session
+continuity as soon as traffic reaches more than one pod. Ensure the container service
+can route to the database private endpoint (for example by attaching the matching VPC
+and subnet). Apply Prisma schema updates explicitly; production startup does not run
+`db push` unless `DATABASE_PUSH_ON_START=1` is intentionally set. Production also
+refuses a missing or placeholder `JWT_SECRET`, because tokens must remain valid across
+container restarts and horizontally scaled instances.
 
 ## Health and smoke checks
 

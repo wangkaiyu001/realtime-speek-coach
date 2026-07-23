@@ -160,7 +160,12 @@ export async function request<T>(
       return request<T>(method, path, data, retries - 1, authRetried);
     }
 
-    if (error instanceof CloudContainerError) throw error;
+    if (error instanceof CloudContainerError) {
+      if (error.statusCode === 401) {
+        throw new ApiRequestError(error.message, error.statusCode, 'AUTH_EXPIRED');
+      }
+      throw new ApiRequestError(error.message, error.statusCode, 'REQUEST_FAILED');
+    }
     throw new ApiRequestError('暂时连接不上服务，请检查网络后重试。', 0, 'NETWORK_ERROR');
   }
 }

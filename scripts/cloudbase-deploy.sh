@@ -9,5 +9,5 @@ tcb -e "$CLOUDBASE_ENV_ID" cloudrun deploy \
   -s "$CLOUDBASE_SERVICE_NAME" \
   --port "$CLOUDBASE_PORT" \
   --source . \
-  --installDependency false \
+  --installDependency true \
   --force

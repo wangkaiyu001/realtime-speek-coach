@@ -245,6 +245,16 @@ async function handleFrame(ws: WebSocket, userId: string, frame: WsClientFrame) 
 
 async function handleHello(ws: WebSocket, userId: string, frame: WsClientFrame & { type: 'hello' }) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    sendFrame(ws, {
+      type: 'error',
+      code: 'AUTH_EXPIRED',
+      message: 'Login state is no longer available. Please reconnect.',
+      retryable: false,
+    });
+    ws.close(1008, 'Login state expired');
+    return;
+  }
   const language = (user?.language || 'en') as Language;
   const level = (user?.level || 4) as ProficiencyLevel;
   const requestedScenario = SEED_SCENARIOS.find((s) => s.id === frame.scenarioId && s.language === language);

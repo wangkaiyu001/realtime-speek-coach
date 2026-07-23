@@ -1,104 +1,104 @@
 // Prisma Schema - Realtime Speak Coach
-// SQLite for MVP, Prisma-compatible with PostgreSQL migration path
+// CloudBase MySQL in production; local development uses a dedicated SQLite schema.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid())
-  openId    String   @unique @map("open_id")
-  unionId   String?  @map("union_id")
-  language  String?  // 'en' | 'ja', null until chosen
-  level     Int?     // 1-9 proficiency
-  nickname  String?
-  avatarUrl String?  @map("avatar_url")
+  id        String   @id @default(cuid()) @db.VarChar(32)
+  openId    String   @unique @map("open_id") @db.VarChar(191)
+  unionId   String?  @map("union_id") @db.VarChar(191)
+  language  String?  @db.VarChar(8) // 'en' | 'ja', null until chosen
+  level     Int? // 1-9 proficiency
+  nickname  String?  @db.VarChar(191)
+  avatarUrl String?  @map("avatar_url") @db.VarChar(512)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   placementResults PlacementResult[]
   sessions         Session[]
 
-  @@map("users")
+  @@map("echoia_users")
 }
 
 model PlacementResult {
-  id            String   @id @default(cuid())
-  userId        String   @map("user_id")
-  language      String   // 'en' | 'ja'
-  level         Int      // resulting level 1-9
+  id            String   @id @default(cuid()) @db.VarChar(32)
+  userId        String   @map("user_id") @db.VarChar(32)
+  language      String   @db.VarChar(8) // 'en' | 'ja'
+  level         Int // resulting level 1-9
   pronunciation Int      @default(0) // 0-100
   grammar       Int      @default(0)
   vocabulary    Int      @default(0)
   fluency       Int      @default(0)
   interaction   Int      @default(0)
-  rawData       String?  @map("raw_data") // JSON string of full assessment
+  rawData       String?  @map("raw_data") @db.LongText // JSON string of full assessment
   createdAt     DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id])
 
-  @@map("placement_results")
+  @@map("echoia_placement_results")
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  userId       String   @map("user_id")
-  scenarioId   String   @map("scenario_id")
-  language     String
-  level        Int
-  totalTurns   Int      @default(10) @map("total_turns")
-  turnsCompleted Int    @default(0) @map("turns_completed")
-  status       String   @default("in_progress") // in_progress | completed | abandoned
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(cuid()) @db.VarChar(32)
+  userId         String   @map("user_id") @db.VarChar(32)
+  scenarioId     String   @map("scenario_id") @db.VarChar(191)
+  language       String   @db.VarChar(8)
+  level          Int
+  totalTurns     Int      @default(10) @map("total_turns")
+  turnsCompleted Int      @default(0) @map("turns_completed")
+  status         String   @default("in_progress") @db.VarChar(32) // in_progress | completed | abandoned
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
-  user   User   @relation(fields: [userId], references: [id])
+  user   User    @relation(fields: [userId], references: [id])
   turns  Turn[]
   review Review?
 
-  @@map("sessions")
+  @@map("echoia_sessions")
 }
 
 model Turn {
-  id          String   @id @default(cuid())
-  sessionId   String   @map("session_id")
-  turnIndex   Int      @map("turn_index")
-  userText    String?  @map("user_text")
-  aiText      String?  @map("ai_text")
-  userAudioUrl String? @map("user_audio_url")
-  aiAudioUrl   String? @map("ai_audio_url")
-  durationMs  Int?     @map("duration_ms")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id           String   @id @default(cuid()) @db.VarChar(32)
+  sessionId    String   @map("session_id") @db.VarChar(32)
+  turnIndex    Int      @map("turn_index")
+  userText     String?  @map("user_text") @db.LongText
+  aiText       String?  @map("ai_text") @db.LongText
+  userAudioUrl String?  @map("user_audio_url") @db.VarChar(1024)
+  aiAudioUrl   String?  @map("ai_audio_url") @db.VarChar(1024)
+  durationMs   Int?     @map("duration_ms")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   session Session @relation(fields: [sessionId], references: [id])
 
   @@unique([sessionId, turnIndex])
-  @@map("turns")
+  @@map("echoia_turns")
 }
 
 model Review {
-  id            String   @id @default(cuid())
-  sessionId     String   @unique @map("session_id")
-  status        String   @default("pending") // pending | processing | completed | failed
-  pronunciation Int?
-  grammar       Int?
-  vocabulary    Int?
-  fluency       Int?
-  interaction   Int?
-  overallComment String? @map("overall_comment")
-  highlights    String?  // JSON array
-  suggestions   String?  // JSON array
-  corrections   String?  // JSON array of TurnCorrection
-  rawResponse   String?  @map("raw_response") // Full LLM response
-  createdAt     DateTime @default(now()) @map("created_at")
-  completedAt   DateTime? @map("completed_at")
+  id             String    @id @default(cuid()) @db.VarChar(32)
+  sessionId      String    @unique @map("session_id") @db.VarChar(32)
+  status         String    @default("pending") @db.VarChar(32) // pending | processing | completed | failed
+  pronunciation  Int?
+  grammar        Int?
+  vocabulary     Int?
+  fluency        Int?
+  interaction    Int?
+  overallComment String?   @map("overall_comment") @db.LongText
+  highlights     String?   @db.LongText // JSON array
+  suggestions    String?   @db.LongText // JSON array
+  corrections    String?   @db.LongText // JSON array of TurnCorrection
+  rawResponse    String?   @map("raw_response") @db.LongText // Full LLM response
+  createdAt      DateTime  @default(now()) @map("created_at")
+  completedAt    DateTime? @map("completed_at")
 
   session Session @relation(fields: [sessionId], references: [id])
 
-  @@map("reviews")
+  @@map("echoia_reviews")
 }
