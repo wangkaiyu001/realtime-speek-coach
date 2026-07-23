@@ -1,22 +1,21 @@
 # Current online status
 
-Last verified: 2026-07-24 03:30 Asia/Shanghai.
+Last verified: 2026-07-24 04:18 Asia/Shanghai.
 
 ## Source and release status
 
-The release currently serving production was built from these source changes
-and deployed before the final Git commit. The reviewed source is now committed
-and synchronized to GitHub `main`:
+The reviewed deployment source and deployment archive hygiene changes are
+committed and synchronized to GitHub `main`:
 
 ```text
-0fa0228438cd5e5edf667f6e3fa0b0b4853302f3 Harden CloudBase production persistence
+e131ff3e99f355f8ff8ff2a718a7b90b63c43704 Keep CloudBase deploy archives clean
 ```
 
 GitHub Actions evidence for that commit:
 
 ```text
-CI: success, run 30039964138
-Publish Docker image: success, run 30039964102
+CI: success, run 30041092371
+Publish Docker image: success, run 30041092391
 ```
 
 The Docker image publish workflow creates these tags on each `main` push:
@@ -55,8 +54,8 @@ Current service configuration:
 
 ```text
 service: echoia-server
-service update time: 2026-07-24 03:14:39 Asia/Shanghai
-online version: echoia-server-039
+service update time: 2026-07-24 04:08:14 Asia/Shanghai
+online version: echoia-server-040
 traffic: 100%
 status: normal
 public access: enabled
@@ -79,7 +78,7 @@ container restarts from changing the production schema.
 
 ## Runtime verification
 
-The final public release verification passed after version 039 received 100% of
+The final public release verification passed after version 040 received 100% of
 traffic:
 
 ```text
@@ -93,14 +92,7 @@ Full release verification passed
 Verification smoke session:
 
 ```text
-cmrxw7z730002if78dbbkubm7
-```
-
-The version 039 startup log confirms the production schema guard is active:
-
-```text
-[startup] Skipping Prisma schema push
-Server running on port 3000
+cmrxye89k0002w8dibbo4rnwy
 ```
 
 The `/api/v1/ready` response reports `database=connected`, proving that the
@@ -125,6 +117,10 @@ secrets:
 The HTTP service also sends Helmet security headers and rate-limit headers. The
 login limiter is per process, so strict global traffic protection should still
 be configured at the platform edge before a broad public launch.
+
+The final go-live audit completed with `pass=8, warn=1, fail=0`. The warning is
+intentional: auth, voice, LLM, and review providers remain in mock mode until
+provider launch decisions and credentials are approved.
 
 ## Mini program CloudBase container access
 
