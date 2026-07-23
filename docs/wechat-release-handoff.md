@@ -155,8 +155,12 @@ whitelist**:
 ```text
 116.6.206.132
 183.159.105.112
+115.194.3.176
+172.184.247.2
 ```
 
-They should already be present if the previous CI-key validation was completed.
-If WeChat reports `invalid ip` again, add the exact current upload egress IP and
-rerun `npm run miniprogram:preview` rather than disabling the whitelist.
+The last two values are the local and GitHub Actions upload gateways observed on
+2026-07-24. If WeChat reports `invalid ip` again, add the exact current upload
+egress IP and rerun the preview rather than disabling the whitelist. GitHub
+hosted runners do not guarantee a fixed outbound IP, so a later run may report a
+new value.

@@ -4,17 +4,20 @@ Last verified: 2026-07-24 03:30 Asia/Shanghai.
 
 ## Source and release status
 
-The release currently serving production was built from the local source changes
-listed in this worktree and deployed before the final Git commit. The last synced
-GitHub `main` commit at the start of this release was:
+The release currently serving production was built from these source changes
+and deployed before the final Git commit. The reviewed source is now committed
+and synchronized to GitHub `main`:
 
 ```text
-665dc161c6973dfc3fa788a43c9c64b780f5ffa1 Route mini program traffic through CloudBase Run
+0fa0228438cd5e5edf667f6e3fa0b0b4853302f3 Harden CloudBase production persistence
 ```
 
-After the release changes are committed, pushed, and CI completes, update this
-section with the final commit and workflow run IDs. Do not treat a successful
-CloudBase deployment as a substitute for source control and CI evidence.
+GitHub Actions evidence for that commit:
+
+```text
+CI: success, run 30039964138
+Publish Docker image: success, run 30039964102
+```
 
 The Docker image publish workflow creates these tags on each `main` push:
 
@@ -162,6 +165,19 @@ Use the manual **WeChat mini program release** workflow with the `preview`
 action to produce the `wechat-preview-qrcode` artifact. The local private key is
 also available outside the repository for a local preview fallback. Never commit
 or print its contents.
+
+Preview upload attempts on 2026-07-24 compiled successfully but WeChat rejected
+the upload gateways because they were not yet present in the code-upload IP
+whitelist:
+
+```text
+local upload: 115.194.3.176
+GitHub Actions upload: 172.184.247.2 (run 30040134535)
+```
+
+Add both current egress IPs in WeChat Development settings, then rerun the
+workflow. A future GitHub-hosted runner can use a different outbound IP, so use
+the exact `invalid ip` value reported by a retry if it changes.
 
 The detailed handoff and real-device checklist are in
 `docs/wechat-release-handoff.md`.
