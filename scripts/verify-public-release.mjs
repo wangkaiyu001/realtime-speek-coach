@@ -3,6 +3,8 @@
 import { spawn } from 'node:child_process';
 
 const DEFAULT_TIMEOUT_MS = Number(process.env.VERIFY_HTTP_TIMEOUT_MS || '15000');
+const READINESS_ATTEMPTS = Number(process.env.VERIFY_READINESS_ATTEMPTS || '3');
+const READINESS_RETRY_DELAY_MS = Number(process.env.VERIFY_READINESS_RETRY_DELAY_MS || '3000');
 const ALLOW_LOCAL = process.env.VERIFY_ALLOW_LOCAL === '1';
 const RUN_FULL_SMOKE = process.env.VERIFY_SKIP_FULL_SMOKE !== '1';
 const REQUIRE_MOCKS = {
@@ -82,7 +84,12 @@ function assertPublicEndpoint(apiUrl, wsUrl) {
   }
 }
 
-async function requestJson(url) {
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function requestJson(url, options = {}) {
+  const allowHttpError = options.allowHttpError === true;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
   try {
@@ -94,13 +101,43 @@ async function requestJson(url) {
     } catch {
       fail(`GET ${url} returned non-JSON ${response.status}: ${text.slice(0, 200)}`);
     }
-    if (!response.ok) {
+    if (!response.ok && !allowHttpError) {
       fail(`GET ${url} failed: ${response.status} ${text.slice(0, 500)}`);
     }
-    return body;
+    return { body, status: response.status, ok: response.ok };
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function waitForReadiness(url) {
+  if (!Number.isInteger(READINESS_ATTEMPTS) || READINESS_ATTEMPTS < 1) {
+    fail('VERIFY_READINESS_ATTEMPTS must be a positive integer.');
+  }
+  if (!Number.isFinite(READINESS_RETRY_DELAY_MS) || READINESS_RETRY_DELAY_MS < 0) {
+    fail('VERIFY_READINESS_RETRY_DELAY_MS must be a non-negative number.');
+  }
+
+  let lastResult;
+  for (let attempt = 1; attempt <= READINESS_ATTEMPTS; attempt += 1) {
+    try {
+      lastResult = await requestJson(url, { allowHttpError: true });
+      if (lastResult.ok && lastResult.body.status === 'ready' && lastResult.body.database === 'connected') {
+        return lastResult.body;
+      }
+    } catch (error) {
+      lastResult = { error };
+    }
+
+    if (attempt < READINESS_ATTEMPTS) {
+      const detail = lastResult?.error?.message || `HTTP ${lastResult.status}: ${JSON.stringify(lastResult.body)}`;
+      console.warn(`Readiness attempt ${attempt}/${READINESS_ATTEMPTS} failed (${detail}); retrying in ${READINESS_RETRY_DELAY_MS}ms.`);
+      await sleep(READINESS_RETRY_DELAY_MS);
+    }
+  }
+
+  if (lastResult?.error) throw lastResult.error;
+  fail(`Readiness check failed after ${READINESS_ATTEMPTS} attempts: HTTP ${lastResult?.status} ${JSON.stringify(lastResult?.body)}`);
 }
 
 function assertHealth(health) {
@@ -141,14 +178,12 @@ async function main() {
   console.log(`API_URL=${apiUrl}`);
   console.log(`WS_URL=${wsUrl}`);
 
-  const health = await requestJson(`${apiUrl}/health`);
+  const healthResult = await requestJson(`${apiUrl}/health`);
+  const health = healthResult.body;
   assertHealth(health);
   console.log('Health check passed:', JSON.stringify({ status: health.status, mock: health.mock, mocks: health.mocks, auth: health.auth }));
 
-  const readiness = await requestJson(`${apiUrl}/ready`);
-  if (readiness.status !== 'ready' || readiness.database !== 'connected') {
-    fail(`Readiness check failed: ${JSON.stringify(readiness)}`);
-  }
+  const readiness = await waitForReadiness(`${apiUrl}/ready`);
   console.log('Readiness check passed:', JSON.stringify(readiness));
 
   if (RUN_FULL_SMOKE) {
