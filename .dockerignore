@@ -3,6 +3,8 @@
 .github
 node_modules
 .pnpm-store
+.agents
+.codex
 dist
 build
 coverage
@@ -14,6 +16,7 @@ coverage
 logs
 tmp
 .cache
+private.*.key
 prisma/dev.db*
 *.db
 *.db-journal

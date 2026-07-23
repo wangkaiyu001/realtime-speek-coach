@@ -101,12 +101,14 @@ CLOUDBASE_ENV_ID=<envId> sh scripts/cloudbase-deploy.sh
 
 The script deploys this directory as a container Cloud Run service named `echoia-server` on port `3000`. The service must be attached to the same VPC/subnet as CloudBase MySQL; otherwise Prisma reports `P1001` against the private database address. For the current environment, deploy with VPC `vpc-2xght3xc` and subnet `subnet-qdmeiifz` (or re-query the MySQL instance context before changing environments).
 
-The script passes `--installDependency true` to CloudBase CLI. For container
-deployments this is used to exclude the local `node_modules` directory from the
-uploaded source archive; the Dockerfile still performs the actual dependency
-installation during the image build. CloudBase CLI 3.5.0 may still ask whether
-to use a gray release for an existing service even with `--force`; choose full
-release unless a canary rollout is intentional.
+The script first copies an allowlisted source tree into a temporary directory,
+excluding local dependencies, package stores, build output, test databases,
+temporary QR codes, editor metadata, and secret-like files. It then passes
+`--installDependency true` so CloudBase CLI also omits `node_modules`; the
+Dockerfile performs the actual dependency installation during the image build.
+CloudBase CLI 3.5.0 may still ask whether to use a gray release for an existing
+service even with `--force`; choose full release unless a canary rollout is
+intentional.
 
 ## 4. Verify the service
 
