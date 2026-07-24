@@ -7,6 +7,12 @@
 export const CLOUDBASE_ENV_ID = 'code-realtime-d7gbuxrbze297e600';
 export const CLOUDBASE_SERVICE_NAME = 'echoia-server';
 
+// Keep the public transport available for trial/release builds until the
+// WeChat Mini Program account is explicitly associated with this Tencent
+// Cloud-created environment. Direct CloudBase container calls remain the
+// preferred path once that association is active.
+export const ENABLE_PUBLIC_TRANSPORT_FALLBACK = true;
+
 // Kept for Web preview and release verification. The mini program itself uses
 // the bound CloudBase environment and does not rely on this public URL.
 const PRODUCTION_SERVER_ORIGIN = 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com';
