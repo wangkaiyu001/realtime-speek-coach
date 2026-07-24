@@ -156,9 +156,9 @@ The AppID and CI private key have been validated by WeChat. The repository compi
 
 The local upload gateway is whitelisted and validated. On 2026-07-24 it
 successfully generated `tmp/wechat-preview-qrcode.jpg` and uploaded version
-`0.1.1` with robot 1 to the WeChat console. Version `0.1.2` is the next
-release candidate and prefers the public transport immediately in trial/release
-builds.
+`0.1.2` with robot 1 to the WeChat console. This is the
+current release candidate and prefers the public transport immediately in
+trial/release builds.
 
 Previously observed upload IPs include:
 

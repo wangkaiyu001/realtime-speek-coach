@@ -166,8 +166,11 @@ or print its contents.
 
 The local code-upload IP whitelist is now working. On 2026-07-24, the
 repository successfully generated a fresh preview QR code and uploaded mini
-program version `0.1.1` with robot 1 to the WeChat console as an experience /
-review-candidate build. The QR image is intentionally kept outside Git in:
+program version `0.1.2` with robot 1 to the WeChat console as an experience /
+review-candidate build. Version `0.1.2` prefers the stable public HTTPS/WSS
+transport immediately in trial/release builds, so it no longer depends on the
+unlinked CloudBase call failing in a particular way before fallback.
+The QR image is intentionally kept outside Git in:
 
 ```text
 tmp/wechat-preview-qrcode.jpg
