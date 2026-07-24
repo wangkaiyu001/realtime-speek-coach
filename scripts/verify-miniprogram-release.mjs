@@ -108,6 +108,9 @@ function verifyCloudContainerTransport() {
   if (!apiSource.includes('callContainer')) fail('utils/api.ts must route mini program API calls through callContainer.');
   if (!containerSource.includes('wx.cloud.callContainer')) fail('cloud-container.ts must use wx.cloud.callContainer.');
   if (!containerSource.includes('wx.cloud.connectContainer')) fail('cloud-container.ts must use wx.cloud.connectContainer.');
+  if (!containerSource.includes('PREFER_PUBLIC_TRANSPORT_FOR_RELEASE')) fail('cloud-container.ts must support direct public transport for unlinked release builds.');
+  if (!containerSource.includes('requestPublicEndpoint<T>(path, method, data, header)')) fail('cloud-container.ts must route release HTTP calls to the stable public endpoint when configured.');
+  if (!containerSource.includes('url: publicWebSocketUrl(path)')) fail('cloud-container.ts must route release WebSocket calls to the stable public endpoint when configured.');
   if (!containerSource.includes("'X-WX-SERVICE'")) fail('cloud-container.ts must set X-WX-SERVICE for HTTP CloudBase service routing.');
   if (!containerSource.includes("dataType: 'text'")) fail('cloud-container.ts must parse HTTP container responses explicitly.');
   if (containerSource.includes("responseType: 'text'")) fail('cloud-container.ts must not force responseType=text; callContainer dataType handles response parsing.');

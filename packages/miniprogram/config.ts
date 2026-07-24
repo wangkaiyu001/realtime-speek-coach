@@ -1,8 +1,9 @@
 // Mini program runtime configuration.
 //
-// The Echoia service runs in the same CloudBase environment that is associated
-// with this mini program. Mini program API and WebSocket traffic therefore uses
-// wx.cloud.callContainer / wx.cloud.connectContainer instead of public domains.
+// Echoia currently ships as a public-trial mini program. Trial/release builds
+// use the stable public HTTPS/WSS endpoint until this WeChat account is linked
+// to the Tencent-created CloudBase environment. CloudBase container transport
+// remains available for development and for the future linked configuration.
 
 export const CLOUDBASE_ENV_ID = 'code-realtime-d7gbuxrbze297e600';
 export const CLOUDBASE_SERVICE_NAME = 'echoia-server';
@@ -13,8 +14,14 @@ export const CLOUDBASE_SERVICE_NAME = 'echoia-server';
 // preferred path once that association is active.
 export const ENABLE_PUBLIC_TRANSPORT_FALLBACK = true;
 
-// Kept for Web preview and release verification. The mini program itself uses
-// the bound CloudBase environment and does not rely on this public URL.
+// The uploaded build is a public-trial release candidate. Prefer the stable
+// public transport immediately so a missing Tencent-created environment link
+// cannot block login before the fallback is reached. Set this to false after
+// the mini program is explicitly associated with the CloudBase environment.
+export const PREFER_PUBLIC_TRANSPORT_FOR_RELEASE = true;
+
+// Stable public endpoint used by the Web trial, release verification, and the
+// mini program trial/release transport while CloudBase linking is pending.
 const PRODUCTION_SERVER_ORIGIN = 'https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com';
 const DEVELOPMENT_SERVER_ORIGIN = 'http://localhost:3000';
 

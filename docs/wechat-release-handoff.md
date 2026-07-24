@@ -10,19 +10,25 @@ Cloud Run service:      echoia-server
 Public web origin:      https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
 ```
 
-The mini program now initializes the bound CloudBase environment and calls the
-container through `wx.cloud.callContainer` and `wx.cloud.connectContainer`.
-This keeps API and WebSocket traffic inside the CloudBase mini program access
-path and does **not** require the public default domain to be added under
-WeChat "server domains" for the mini program path.
+The mini program initializes the CloudBase environment, but the current
+public-trial trial/release build deliberately uses the stable public HTTPS/WSS
+transport first. This avoids a startup failure while the WeChat account is not
+yet associated with the Tencent-created CloudBase environment. Development
+builds and a future linked release can still use `wx.cloud.callContainer` and
+`wx.cloud.connectContainer`.
 
-The public default domain is still kept for the Web trial and public release
-verification. It remains useful for browser access but is no longer the mini
-program's runtime transport.
+Before real-device testing, configure these WeChat server domains:
 
-Before previewing or uploading, ensure the Echoia mini program is associated
-with `code-realtime-d7gbuxrbze297e600` in CloudBase and the environment contains
-the `echoia-server` Cloud Run service.
+```text
+request: https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
+socket:  wss://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com
+```
+
+The server-domain edit requires a mini program administrator to scan the
+identity-verification QR code. After the mini program is explicitly associated
+with `code-realtime-d7gbuxrbze297e600`, set
+`PREFER_PUBLIC_TRANSPORT_FOR_RELEASE=false` and re-run the full release gate
+before uploading another build.
 
 ## CI upload or preview
 
@@ -48,7 +54,7 @@ Upload an experience/release candidate version:
 ```bash
 WECHAT_APPID=<wx-appid> \
 WECHAT_PRIVATE_KEY_PATH=/absolute/path/private.<wx-appid>.key \
-WECHAT_UPLOAD_VERSION=0.1.0 \
+WECHAT_UPLOAD_VERSION=0.1.2 \
 WECHAT_UPLOAD_DESC="Echoia MVP public trial" \
 PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com \
 npm run miniprogram:upload
@@ -150,7 +156,9 @@ The AppID and CI private key have been validated by WeChat. The repository compi
 
 The local upload gateway is whitelisted and validated. On 2026-07-24 it
 successfully generated `tmp/wechat-preview-qrcode.jpg` and uploaded version
-`0.1.0` with robot 1 to the WeChat console.
+`0.1.1` with robot 1 to the WeChat console. Version `0.1.2` is the next
+release candidate and prefers the public transport immediately in trial/release
+builds.
 
 Previously observed upload IPs include:
 

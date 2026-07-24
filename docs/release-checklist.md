@@ -115,15 +115,17 @@ The public CloudBase origin remains available for the Web trial:
 
 - Web/API origin: `https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com`
 
-The mini program itself now uses the CloudBase container access path:
+The current public-trial mini program prefers the stable public transport in
+trial/release builds because the WeChat account is not yet associated with the
+Tencent-created CloudBase environment:
 
-- Environment: `code-realtime-d7gbuxrbze297e600`
-- Service: `echoia-server`
-- HTTP: `wx.cloud.callContainer(...)`
-- WebSocket: `wx.cloud.connectContainer(...)`
+- HTTP: `wx.request(...)`
+- WebSocket: `wx.connectSocket(...)`
+- request domain: `https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com`
+- socket domain: `wss://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com`
 
-This avoids the mini program public-domain allowlist path. The mini program must
-remain associated with this environment. Before every trial/release build, run
+CloudBase container transport remains available for development and a future
+linked release. Before every trial/release build, run
 `PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com npm run verify:public` and confirm it still passes.
 
 The client uses `wx.login()` in trial/release builds and sends the real WeChat code to `/auth/login`. The server supports both modes:
@@ -170,7 +172,7 @@ npm run miniprogram:preview
 
 WECHAT_APPID=<wx-appid> \
 WECHAT_PRIVATE_KEY_PATH=/absolute/path/private.<wx-appid>.key \
-WECHAT_UPLOAD_VERSION=0.1.0 \
+WECHAT_UPLOAD_VERSION=0.1.2 \
 WECHAT_UPLOAD_DESC="Echoia MVP public trial" \
 PUBLIC_ORIGIN=https://echoia-server-263603-8-1419519222.sh.run.tcloudbase.com \
 npm run miniprogram:upload

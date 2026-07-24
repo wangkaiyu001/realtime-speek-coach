@@ -1,4 +1,10 @@
-import { ENABLE_PUBLIC_TRANSPORT_FALLBACK, getCloudContainerConfig, getEndpointConfig, isReleaseLikeEnv } from '../config';
+import {
+  ENABLE_PUBLIC_TRANSPORT_FALLBACK,
+  PREFER_PUBLIC_TRANSPORT_FOR_RELEASE,
+  getCloudContainerConfig,
+  getEndpointConfig,
+  isReleaseLikeEnv,
+} from '../config';
 
 export class CloudContainerError extends Error {
   statusCode: number;
@@ -84,6 +90,10 @@ export async function callContainer<T>(
   data?: WechatMiniprogram.IAnyObject | string | ArrayBuffer,
   header: Record<string, string> = {},
 ): Promise<T> {
+  if (PREFER_PUBLIC_TRANSPORT_FOR_RELEASE && isReleaseLikeEnv()) {
+    return requestPublicEndpoint<T>(path, method, data, header);
+  }
+
   const { env, service } = getCloudContainerConfig();
   let response: { data: unknown; statusCode: number };
   try {
@@ -147,6 +157,13 @@ function shouldFallbackSocket(error: unknown) {
 }
 
 export async function connectContainerSocket(path: string, token: string): Promise<WechatMiniprogram.SocketTask> {
+  if (PREFER_PUBLIC_TRANSPORT_FOR_RELEASE && isReleaseLikeEnv()) {
+    return wx.connectSocket({
+      url: publicWebSocketUrl(path),
+      header: { Authorization: `Bearer ${token}` },
+    });
+  }
+
   const { env, service } = getCloudContainerConfig();
   try {
     const response = await wx.cloud.connectContainer({

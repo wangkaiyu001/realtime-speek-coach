@@ -130,15 +130,17 @@ service:
 ```text
 Environment: code-realtime-d7gbuxrbze297e600
 Service: echoia-server
-HTTP: wx.cloud.callContainer
-WebSocket: wx.cloud.connectContainer
+Trial/release HTTP: wx.request -> stable public HTTPS origin
+Trial/release WebSocket: wx.connectSocket -> stable public WSS origin
+Development/future linked HTTP: wx.cloud.callContainer
+Development/future linked WebSocket: wx.cloud.connectContainer
 AppID: wx37f86133fd3d2de4
 ```
 
-This transport replaces direct `wx.request` / `wx.connectSocket` calls for the
-mini program path, so the CloudBase container route does not depend on adding the
-public default domain to WeChat server-domain settings. The public domain remains
-enabled for the Web trial and external release verification.
+The public transport is preferred in trial/release builds until the WeChat
+account is explicitly associated with the Tencent-created CloudBase environment.
+The WeChat server-domain list must contain the Echoia HTTPS request domain and
+WSS socket domain before real-device testing.
 
 The repository contains the static project files and CI tooling required for a
 preview or upload:
@@ -164,7 +166,7 @@ or print its contents.
 
 The local code-upload IP whitelist is now working. On 2026-07-24, the
 repository successfully generated a fresh preview QR code and uploaded mini
-program version `0.1.0` with robot 1 to the WeChat console as an experience /
+program version `0.1.1` with robot 1 to the WeChat console as an experience /
 review-candidate build. The QR image is intentionally kept outside Git in:
 
 ```text
